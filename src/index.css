@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-paper text-ink font-body antialiased;
+    letter-spacing: -0.003em;
+    -webkit-tap-highlight-color: transparent;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+  h1 {
+    letter-spacing: -0.025em;
+  }
+  p {
+    letter-spacing: -0.006em;
+  }
+  ::selection {
+    background: #FFCD02;
+    color: #0A2A57;
+  }
+  :focus-visible {
+    outline: 2px solid #DFA640;
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+/* Scrollbar del sitio con la paleta de marca */
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: #F1F5FB; }
+::-webkit-scrollbar-thumb { background: #C7D6EC; border-radius: 999px; border: 3px solid #F1F5FB; }
+::-webkit-scrollbar-thumb:hover { background: #024293; }
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-body font-semibold text-sm transition-all duration-200 ease-out;
+  }
+  .btn-gold {
+    @apply btn bg-gold text-ink shadow-sm hover:bg-gold-dark hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm;
+  }
+  .btn-outline {
+    @apply btn border border-ink/20 text-ink hover:border-ink hover:bg-ink hover:text-paper hover:-translate-y-0.5 active:translate-y-0;
+  }
+  .btn-ghost {
+    @apply btn text-ink/70 hover:text-ink;
+  }
+  .card {
+    @apply bg-white/60 border border-line rounded-2xl p-6 transition-all duration-300 ease-out;
+  }
+  .eyebrow {
+    @apply font-mono text-xs tracking-[0.18em] uppercase text-azul;
+  }
+  .input {
+    @apply w-full rounded-lg border border-line bg-white px-4 py-2.5 text-ink placeholder:text-ink/40 focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all duration-200;
+  }
+  .label {
+    @apply block text-sm font-medium text-ink/80 mb-1.5;
+  }
+
+  /* Skeleton de carga tipo shimmer */
+  .skeleton-pulse {
+    background: linear-gradient(90deg, #EEF2F8 25%, #F7F9FC 37%, #EEF2F8 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+@keyframes gradientshift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Scrollbar discreto para carruseles de miniaturas */
+.scrollbar-thin::-webkit-scrollbar { height: 6px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #E1E8F2; border-radius: 999px; }
+
