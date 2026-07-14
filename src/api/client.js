@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Configura VITE_API_URL en tu .env — ver .env.example
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const API_URL = import.meta.env.VITE_API_URL || 'https://backend-iglesia-3op0.onrender.com';
 
 export const api = axios.create({
   baseURL: `${API_URL}/api`,
