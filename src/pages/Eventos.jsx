@@ -11,6 +11,41 @@ import { TiltCard } from '../components/TiltCard';
 import { GaleriaAuto } from '../components/GaleriaAuto';
 import { formatTime12h } from '../utils/formatTime';
 
+function TarjetaEvento({ e }) {
+  return (
+    <TiltCard max={5} className="group block rounded-2xl overflow-hidden border border-line bg-white hover:shadow-brand hover:-translate-y-1 transition-all duration-300">
+      <Link to={`/eventos/${e.id}`} className="block">
+        <div className="overflow-hidden h-52 sm:h-56 md:h-60 relative">
+          {e.imagenUrl ? (
+            <img src={e.imagenUrl} alt={e.titulo} className="w-full h-52 sm:h-56 md:h-60 object-cover transition-transform duration-500 group-hover:scale-110" />
+          ) : (
+            <PlaceholderEvento categoria={e.categoria} className="w-full h-52 sm:h-56 md:h-60 transition-transform duration-500 group-hover:scale-110" />
+          )}
+          {e.imagenes?.length > 0 && (
+            <div className="absolute top-2 right-2 bg-ink/60 backdrop-blur text-paper text-[10px] font-mono px-2 py-0.5 rounded-full">
+              +{e.imagenes.length} fotos
+            </div>
+          )}
+        </div>
+        <div className="p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <p className="font-mono text-[11px] text-rojo uppercase tracking-wide">
+              {new Date(e.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
+            {e.horaInicio && (
+              <span className="text-[11px] text-ink/40">· {formatTime12h(e.horaInicio)}</span>
+            )}
+          </div>
+          <h3 className="font-display text-lg text-ink leading-snug group-hover:text-azul transition-colors">
+            {e.titulo}
+          </h3>
+          {e.lugar && <p className="text-xs text-ink/50 mt-1">📍 {e.lugar}</p>}
+        </div>
+      </Link>
+    </TiltCard>
+  );
+}
+
 export default function Eventos() {
   const [tab, setTab] = useState('todos');
   const [categoriaActiva, setCategoriaActiva] = useState('');
@@ -30,7 +65,7 @@ export default function Eventos() {
     api.get('/eventos', { params }).then((r) => setEventos(r.data)).catch(() => setEventos([])).finally(() => setCargando(false));
   }, [tab, categoriaActiva]);
 
-  const grupos = categorias
+  const categoriasConEventos = categorias
     .map((cat) => ({ categoria: cat, items: eventos.filter((e) => e.categoria === cat) }))
     .filter((g) => g.items.length > 0);
 
@@ -55,27 +90,20 @@ export default function Eventos() {
         <Horizonte className="text-paper" />
       </section>
 
-      {/* Galería automática */}
       {todasFotos.length > 0 && (
         <section className="max-w-5xl mx-auto px-5 md:px-8 pt-10">
           <Reveal>
-            <GaleriaAuto
-              imagenes={todasFotos}
-              alt="Galería de eventos"
-              className="shadow-brand"
-              intervalo={4500}
-            />
+            <GaleriaAuto imagenes={todasFotos} alt="Galería de eventos" className="shadow-brand" intervalo={4500} />
           </Reveal>
         </section>
       )}
 
       <section className="max-w-7xl mx-auto px-5 md:px-8 py-14">
-        {/* Filtros */}
         <Reveal className="flex flex-wrap gap-2 justify-center mb-4">
           {[{ id: 'todos', label: 'Todos' }, { id: 'proximos', label: 'Próximos' }, { id: 'pasados', label: 'Realizados' }].map((t) => (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => { setTab(t.id); setCategoriaActiva(''); }}
               className={`relative px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
                 tab === t.id ? 'text-paper' : 'bg-paper2 text-ink/60 hover:text-ink'
               }`}
@@ -121,55 +149,40 @@ export default function Eventos() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
             >
-              {grupos.length === 0 && (
+              {eventos.length === 0 && (
                 <p className="text-ink/50 text-center">No hay eventos para mostrar con este filtro.</p>
               )}
 
-              <div className="space-y-12">
-                {grupos.map((g) => (
-                  <div key={g.categoria}>
-                    <Reveal>
-                      <h2 className="font-display text-2xl text-azul mb-6">{g.categoria}</h2>
-                    </Reveal>
-                    <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
-                      {g.items.map((e) => (
-                        <StaggerItem key={e.id}>
-                          <TiltCard max={5} className="group block rounded-2xl overflow-hidden border border-line bg-white hover:shadow-brand hover:-translate-y-1 transition-all duration-300">
-                          <Link to={`/eventos/${e.id}`} className="block">
-                            <div className="overflow-hidden h-52 sm:h-56 md:h-60 relative">
-                              {e.imagenUrl ? (
-                                <img src={e.imagenUrl} alt={e.titulo} className="w-full h-52 sm:h-56 md:h-60 object-cover transition-transform duration-500 group-hover:scale-110" />
-                              ) : (
-                                <PlaceholderEvento categoria={e.categoria} className="w-full h-52 sm:h-56 md:h-60 transition-transform duration-500 group-hover:scale-110" />
-                              )}
-                              {e.imagenes?.length > 0 && (
-                                <div className="absolute top-2 right-2 bg-ink/60 backdrop-blur text-paper text-[10px] font-mono px-2 py-0.5 rounded-full">
-                                  +{e.imagenes.length} fotos
-                                </div>
-                              )}
-                            </div>
-                            <div className="p-4">
-                              <div className="flex items-center gap-2 mb-1">
-                                <p className="font-mono text-[11px] text-rojo uppercase tracking-wide">
-                                  {new Date(e.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                </p>
-                                {e.horaInicio && (
-                                  <span className="text-[11px] text-ink/40">· {formatTime12h(e.horaInicio)}</span>
-                                )}
-                              </div>
-                              <h3 className="font-display text-lg text-ink leading-snug group-hover:text-azul transition-colors">
-                                {e.titulo}
-                              </h3>
-                              {e.lugar && <p className="text-xs text-ink/50 mt-1">📍 {e.lugar}</p>}
-                            </div>
-                          </Link>
-                          </TiltCard>
-                        </StaggerItem>
-                      ))}
-                    </StaggerGroup>
-                  </div>
-                ))}
-              </div>
+              {/* Sin categoría seleccionada: todos los eventos en una sola grilla */}
+              {!categoriaActiva && eventos.length > 0 && (
+                <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
+                  {eventos.map((e) => (
+                    <StaggerItem key={e.id}>
+                      <TarjetaEvento e={e} />
+                    </StaggerItem>
+                  ))}
+                </StaggerGroup>
+              )}
+
+              {/* Con categoría seleccionada: agrupado por categoría */}
+              {categoriaActiva && categoriasConEventos.length > 0 && (
+                <div className="space-y-12">
+                  {categoriasConEventos.map((g) => (
+                    <div key={g.categoria}>
+                      <Reveal>
+                        <h2 className="font-display text-2xl text-azul mb-6">{g.categoria}</h2>
+                      </Reveal>
+                      <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
+                        {g.items.map((e) => (
+                          <StaggerItem key={e.id}>
+                            <TarjetaEvento e={e} />
+                          </StaggerItem>
+                        ))}
+                      </StaggerGroup>
+                    </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
