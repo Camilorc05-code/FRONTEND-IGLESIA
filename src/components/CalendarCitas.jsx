@@ -191,9 +191,15 @@ export default function CalendarCitas({ pastorId, onSelectSlot, modoAdmin = fals
               {diaElegido.map((c, i) => (
                 <div key={i} className="flex items-center gap-3 bg-rojo/5 rounded-lg px-3 py-2">
                   <span className="font-mono text-sm text-rojo font-medium">{formatTime12h(c.hora)}</span>
-                  <span className="text-sm text-ink/60">{c.nombreSolicitante}</span>
-                  {modoAdmin && c.pastor && (
-                    <span className="text-xs text-ink/40 ml-auto">con {c.pastor.nombre}</span>
+                  {modoAdmin ? (
+                    <>
+                      <span className="text-sm text-ink/60">{c.nombreSolicitante}</span>
+                      {c.pastor && (
+                        <span className="text-xs text-ink/40 ml-auto">con {c.pastor.nombre}</span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-sm text-ink/50 italic">Horario reservado</span>
                   )}
                 </div>
               ))}

@@ -15,6 +15,7 @@ const ESTILO_ESTADO = {
 export default function Citas() {
   const { usuario } = useAuth();
   const [citas, setCitas] = useState([]);
+  const [recordatorios, setRecordatorios] = useState([]);
   const [filtroEstado, setFiltroEstado] = useState('');
   const [vista, setVista] = useState('lista'); // 'lista' | 'calendario'
   const [cargando, setCargando] = useState(true);
@@ -26,8 +27,12 @@ export default function Citas() {
       if (filtroEstado) params.estado = filtroEstado;
       // Pastor/Líder solo ve sus propias citas
       if (usuario?.rol !== 'ADMIN') params.pastorId = usuario?.id;
-      const { data } = await api.get('/citas', { params });
-      setCitas(data);
+      const [resCitas, resRecordatorios] = await Promise.all([
+        api.get('/citas', { params }),
+        api.get('/citas/recordatorios'),
+      ]);
+      setCitas(resCitas.data);
+      setRecordatorios(resRecordatorios.data);
     } catch {
       // silencioso
     } finally {
@@ -50,6 +55,15 @@ export default function Citas() {
     await api.delete(`/citas/${id}`);
     cargar();
   }
+
+  async function marcarRecordatorio(id) {
+    await api.put(`/citas/${id}/recordatorio`);
+    cargar();
+  }
+
+  const recordatoriosFiltrados = usuario?.rol !== 'ADMIN'
+    ? recordatorios.filter((r) => r.pastor?.id === usuario?.id)
+    : recordatorios;
 
   return (
     <div className="p-4 md:p-8">
@@ -85,6 +99,47 @@ export default function Citas() {
         </div>
       </div>
 
+      {/* Recordatorios próximos */}
+      {recordatoriosFiltrados.length > 0 && vista === 'lista' && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="w-2.5 h-2.5 rounded-full bg-gold animate-pulse" />
+            <h2 className="font-display text-lg text-ink">Próximas citas (48h)</h2>
+            <span className="text-xs bg-gold/20 text-gold-dark px-2 py-0.5 rounded-full font-mono">
+              {recordatoriosFiltrados.length}
+            </span>
+          </div>
+          <div className="space-y-2">
+            {recordatoriosFiltrados.map((c) => (
+              <div key={c.id} className="bg-gold/5 border border-gold/20 rounded-xl p-4 flex flex-col md:flex-row md:items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-sm text-gold-dark font-medium">
+                      {new Date(c.fecha).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    </span>
+                    <span className="font-mono text-sm text-ink">· {formatTime12h(c.hora)}</span>
+                    <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${ESTILO_ESTADO[c.estado]}`}>
+                      {c.estado}
+                    </span>
+                  </div>
+                  <p className="text-sm text-ink/60 mt-1">
+                    {c.nombreSolicitante} · 📞 {c.telefonoSolicitante}
+                    {c.pastor && <> · Con <strong className="text-ink">{c.pastor.nombre}</strong></>}
+                  </p>
+                  {c.motivo && <p className="text-xs text-ink/40 mt-1 italic">"{c.motivo}"</p>}
+                </div>
+                <button
+                  onClick={() => marcarRecordatorio(c.id)}
+                  className="btn-outline !py-1.5 !px-3 text-xs shrink-0 whitespace-nowrap"
+                >
+                  Marcar como recordado
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {vista === 'calendario' ? (
         <div className="max-w-2xl">
           <CalendarCitas
@@ -108,6 +163,11 @@ export default function Citas() {
                   <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${ESTILO_ESTADO[c.estado]}`}>
                     {c.estado}
                   </span>
+                  {c.recordatorioEnviado && (
+                    <span className="text-xs bg-verde/15 text-verde-dark px-2 py-0.5 rounded-full font-mono">
+                      Recordado
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-ink/60 mt-1">
                   📞 {c.telefonoSolicitante} {c.emailSolicitante && `· ${c.emailSolicitante}`}
@@ -120,7 +180,7 @@ export default function Citas() {
                 {c.motivo && <p className="text-sm text-ink/50 mt-1 italic">"{c.motivo}"</p>}
               </div>
 
-              <div className="flex gap-2 shrink-0">
+              <div className="flex gap-2 shrink-0 flex-wrap">
                 {c.estado === 'PENDIENTE' && (
                   <button onClick={() => cambiarEstado(c.id, 'CONFIRMADA')} className="btn-outline !py-1.5 !px-3 text-xs">
                     Confirmar
