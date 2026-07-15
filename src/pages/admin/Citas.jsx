@@ -61,6 +61,17 @@ export default function Citas() {
     cargar();
   }
 
+  async function enviarRecordatoriosAutomaticos() {
+    if (!confirm('¿Enviar recordatorios por correo a todos los pastores/líderes con citas próximas?')) return;
+    try {
+      const { data } = await api.get('/citas/auto-recordatorios');
+      alert(data.mensaje);
+      cargar();
+    } catch {
+      alert('Error al enviar recordatorios.');
+    }
+  }
+
   const recordatoriosFiltrados = usuario?.rol !== 'ADMIN'
     ? recordatorios.filter((r) => r.pastor?.id === usuario?.id)
     : recordatorios;
@@ -102,12 +113,22 @@ export default function Citas() {
       {/* Recordatorios próximos */}
       {recordatoriosFiltrados.length > 0 && vista === 'lista' && (
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="w-2.5 h-2.5 rounded-full bg-gold animate-pulse" />
-            <h2 className="font-display text-lg text-ink">Próximas citas (48h)</h2>
-            <span className="text-xs bg-gold/20 text-gold-dark px-2 py-0.5 rounded-full font-mono">
-              {recordatoriosFiltrados.length}
-            </span>
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-gold animate-pulse" />
+              <h2 className="font-display text-lg text-ink">Próximas citas (48h)</h2>
+              <span className="text-xs bg-gold/20 text-gold-dark px-2 py-0.5 rounded-full font-mono">
+                {recordatoriosFiltrados.length}
+              </span>
+            </div>
+            {usuario?.rol === 'ADMIN' && (
+              <button
+                onClick={enviarRecordatoriosAutomaticos}
+                className="btn-gold !py-1.5 !px-3 text-xs"
+              >
+                Enviar recordatorios por correo
+              </button>
+            )}
           </div>
           <div className="space-y-2">
             {recordatoriosFiltrados.map((c) => (

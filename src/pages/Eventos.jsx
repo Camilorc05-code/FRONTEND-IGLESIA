@@ -131,16 +131,16 @@ export default function Eventos() {
                     <Reveal>
                       <h2 className="font-display text-2xl text-azul mb-5">{g.categoria}</h2>
                     </Reveal>
-                    <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                    <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
                       {g.items.map((e) => (
                         <StaggerItem key={e.id}>
                           <TiltCard max={5} className="group block rounded-2xl overflow-hidden border border-line bg-white hover:shadow-brand hover:-translate-y-1 transition-all duration-300">
                           <Link to={`/eventos/${e.id}`} className="block">
-                            <div className="overflow-hidden h-44 sm:h-40 relative">
+                            <div className="overflow-hidden h-40 md:h-44 relative">
                               {e.imagenUrl ? (
-                                <img src={e.imagenUrl} alt={e.titulo} className="w-full h-44 sm:h-40 object-cover transition-transform duration-500 group-hover:scale-110" />
+                                <img src={e.imagenUrl} alt={e.titulo} className="w-full h-40 md:h-44 object-cover transition-transform duration-500 group-hover:scale-110" />
                               ) : (
-                                <PlaceholderEvento categoria={e.categoria} className="w-full h-44 sm:h-40 transition-transform duration-500 group-hover:scale-110" />
+                                <PlaceholderEvento categoria={e.categoria} className="w-full h-40 md:h-44 transition-transform duration-500 group-hover:scale-110" />
                               )}
                               {e.imagenes?.length > 0 && (
                                 <div className="absolute top-2 right-2 bg-ink/60 backdrop-blur text-paper text-[10px] font-mono px-2 py-0.5 rounded-full">
