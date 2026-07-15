@@ -7,6 +7,7 @@ import { GlobeGrid } from '../components/GlobeGrid';
 import { PlaceholderEvento } from '../components/PlaceholderEvento';
 import { Reveal, StaggerGroup, StaggerItem } from '../components/Reveal';
 import { SkeletonGrid } from '../components/Skeleton';
+import { TiltCard } from '../components/TiltCard';
 
 export default function Eventos() {
   const [tab, setTab] = useState('todos');
