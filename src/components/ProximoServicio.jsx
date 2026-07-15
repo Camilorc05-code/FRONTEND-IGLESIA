@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { formatTime12h } from '../utils/formatTime';
 
 const DIAS_INDEX = {
   Domingo: 0, Lunes: 1, Martes: 2, Miércoles: 3, Jueves: 4, Viernes: 5, Sábado: 6,
@@ -64,7 +65,7 @@ export function ProximoServicio({ servicios }) {
   return (
     <div className="inline-flex flex-col items-center gap-2.5 md:gap-3 rounded-2xl border border-line bg-white/80 backdrop-blur px-4 py-4 md:px-6 md:py-5 shadow-brand-sm max-w-full">
       <p className="font-mono text-[10px] md:text-[11px] uppercase tracking-widest text-azul text-center px-1">
-        Próximo servicio · {proximo.servicio.nombre}
+        Próximo servicio · {proximo.servicio.nombre} · {formatTime12h(proximo.servicio.horaInicio)}
       </p>
       <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
         {unidades.map((u, i) => (

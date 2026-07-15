@@ -100,3 +100,25 @@
 .scrollbar-thin::-webkit-scrollbar { height: 6px; }
 .scrollbar-thin::-webkit-scrollbar-thumb { background: #E1E8F2; border-radius: 999px; }
 
+/* Animaciones para galería automática */
+@keyframes galleryFade {
+  0%, 100% { opacity: 1; }
+  45% { opacity: 1; }
+  50% { opacity: 0; }
+  55% { opacity: 1; }
+}
+
+@keyframes galleryZoom {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.gallery-transition {
+  animation: galleryFade 4s ease-in-out infinite;
+}
+
+.gallery-zoom {
+  animation: galleryZoom 8s ease-in-out infinite;
+}
+

@@ -17,6 +17,8 @@ import { ProximoServicio } from '../components/ProximoServicio';
 import { CarruselEventos } from '../components/CarruselEventos';
 import { Particulas } from '../components/Particulas';
 import { ImagenParallax } from '../components/ImagenParallax';
+import { GaleriaAuto } from '../components/GaleriaAuto';
+import { formatTimeRange12h } from '../utils/formatTime';
 import fotoBienvenidos from '../assets/bienvenidos.jpg';
 import fotoIglesia from '../assets/iglesia-interior.jpg';
 import fotoPastor from '../assets/pastor.png';
@@ -24,6 +26,8 @@ import fotoFamilia from '../assets/familia-pastoral.jpg';
 import fotoFachada from '../assets/fachada-iglesia.jpg';
 import logoMiaImg from '../assets/logo-mia.png';
 import logoMjpImg from '../assets/logo-mjp.png';
+
+const DIRECCION_IGLESIA = 'Calle 12 #10-19, Barrio El Palmar';
 
 export default function Inicio() {
   const [servicios, setServicios] = useState([]);
@@ -40,13 +44,22 @@ export default function Inicio() {
     api.get('/eventos/categorias').then((r) => setCategorias(r.data)).catch(() => {});
   }, []);
 
+  const fotosServicios = servicios.flatMap((s) => [
+    ...(s.imagenUrl ? [s.imagenUrl] : []),
+    ...(s.imagenes || []).map((img) => img.url),
+  ]);
+
+  const fotosEventos = eventos.flatMap((e) => [
+    ...(e.imagenUrl ? [e.imagenUrl] : []),
+    ...(e.imagenes || []).map((img) => img.url),
+  ]);
+
   return (
     <div>
       {/* HERO */}
       <MouseParallax className="relative bg-amanecer overflow-hidden">
         {({ mvX, mvY }) => (
           <>
-            {/* fachada real de la iglesia, de fondo, atenuada con el degradado de marca */}
             <ImagenParallax
               src={fotoFachada}
               alt="Fachada de Misión Panamericana - Centro de Fe y Esperanza"
@@ -55,7 +68,6 @@ export default function Inicio() {
             />
             <div className="absolute inset-0 bg-amanecer opacity-[0.82]" />
 
-            {/* orbes decorativos de profundidad, con paralaje + respiración */}
             <div className="pointer-events-none absolute inset-0">
               <ParallaxLayer
                 mvX={mvX} mvY={mvY} depth={-14}
@@ -80,7 +92,6 @@ export default function Inicio() {
 
             <div className="max-w-6xl mx-auto px-5 md:px-8 pt-20 pb-28 md:pt-24 md:pb-36 relative z-10">
               <div className="grid md:grid-cols-[1.15fr_0.85fr] gap-14 md:gap-8 items-center">
-                {/* Columna de texto */}
                 <div>
                   <motion.p
                     className="eyebrow mb-5"
@@ -88,7 +99,7 @@ export default function Inicio() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
                   >
-                    Paz de Ariporo · Casanare
+                    {DIRECCION_IGLESIA}
                   </motion.p>
 
                   <h1 className="text-ink">
@@ -147,7 +158,6 @@ export default function Inicio() {
                   )}
                 </div>
 
-                {/* Columna del logo, con la malla del globo detrás y paralaje */}
                 <motion.div
                   className="relative flex justify-center md:justify-end"
                   initial={{ opacity: 0, scale: 0.85 }}
@@ -171,7 +181,6 @@ export default function Inicio() {
                 </motion.div>
               </div>
 
-              {/* pista de scroll */}
               <motion.div
                 className="hidden md:flex justify-center mt-16"
                 initial={{ opacity: 0 }}
@@ -235,7 +244,7 @@ export default function Inicio() {
         </div>
       </section>
 
-      {/* BIENVENIDA — foto real del equipo de bienvenida */}
+      {/* BIENVENIDA */}
       <section className="bg-paper">
         <div className="max-w-6xl mx-auto px-5 md:px-8 py-16 md:py-24 grid md:grid-cols-2 gap-10 md:gap-14 items-center">
           <Reveal delay={0.05} className="order-2 md:order-1">
@@ -246,6 +255,13 @@ export default function Inicio() {
             <p className="text-ink/70 leading-relaxed max-w-md">
               Cada rostro cuenta una historia, y en Misión Panamericana queremos ser parte de la tuya.
               Nuestro equipo de bienvenida está listo para recibirte con los brazos abiertos.
+            </p>
+            <p className="text-ink/50 text-sm mt-4 flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z" />
+                <circle cx="12" cy="10" r="2.5" />
+              </svg>
+              {DIRECCION_IGLESIA}
             </p>
           </Reveal>
           <Reveal className="order-1 md:order-2">
@@ -260,12 +276,23 @@ export default function Inicio() {
         </div>
       </section>
 
-      {/* PRÓXIMOS SERVICIOS */}
+      {/* PRÓXIMOS SERVICIOS + GALERÍA */}
       <section className="max-w-6xl mx-auto px-5 md:px-8 py-16 md:py-24">
         <Reveal>
           <p className="eyebrow mb-3">Cada semana</p>
           <h2 className="font-display text-3xl md:text-4xl text-ink mb-10">Nuestros horarios</h2>
         </Reveal>
+
+        {fotosServicios.length > 0 && (
+          <Reveal className="mb-10">
+            <GaleriaAuto
+              imagenes={fotosServicios}
+              alt="Galería de servicios"
+              className="shadow-brand"
+              intervalo={5000}
+            />
+          </Reveal>
+        )}
 
         {cargandoServicios ? (
           <SkeletonGrid count={4} cols="md:grid-cols-4" />
@@ -275,15 +302,24 @@ export default function Inicio() {
           <StaggerGroup className="grid sm:grid-cols-2 md:grid-cols-4 gap-5">
             {servicios.map((s) => (
               <StaggerItem key={s.id}>
-                <div className="card h-full hover:shadow-brand-sm hover:-translate-y-1 hover:border-gold">
+                <div className="card h-full hover:shadow-brand-sm hover:-translate-y-1 hover:border-gold overflow-hidden">
+                  {(s.imagenUrl || s.imagenes?.length > 0) && (
+                    <div className="h-28 -mx-6 -mt-6 mb-3 overflow-hidden">
+                      <img
+                        src={s.imagenUrl || s.imagenes?.[0]?.url}
+                        alt={s.nombre}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
                   <p className="font-mono text-xs text-azul uppercase tracking-wide mb-2">
                     {s.diaSemana}
                   </p>
                   <h3 className="font-display text-lg text-ink mb-1 leading-snug">{s.nombre}</h3>
-                  <p className="font-mono text-lg text-rojo">
-                    {s.horaInicio}{s.horaFin ? ` – ${s.horaFin}` : ''}
+                  <p className="font-mono text-sm text-rojo">
+                    {formatTimeRange12h(s.horaInicio, s.horaFin)}
                   </p>
-                  {s.lugar && <p className="text-sm text-ink/60 mt-2">{s.lugar}</p>}
+                  {s.lugar && <p className="text-sm text-ink/60 mt-2">📍 {s.lugar}</p>}
                 </div>
               </StaggerItem>
             ))}
@@ -298,7 +334,7 @@ export default function Inicio() {
 
       <Horizonte className="text-paper2" />
 
-      {/* IGLESIA EN COMUNIDAD — foto real de un servicio */}
+      {/* IGLESIA EN COMUNIDAD */}
       <section className="relative h-[46vh] min-h-[320px] overflow-hidden">
         <ImagenParallax
           src={fotoIglesia}
@@ -315,13 +351,24 @@ export default function Inicio() {
         </div>
       </section>
 
-      {/* PRÓXIMOS EVENTOS */}
+      {/* PRÓXIMOS EVENTOS + GALERÍA */}
       <section className="bg-paper2">
         <div className="max-w-6xl mx-auto px-5 md:px-8 py-16 md:py-24">
           <Reveal>
             <p className="eyebrow mb-3">No te lo pierdas</p>
             <h2 className="font-display text-3xl md:text-4xl text-ink mb-10">Próximos eventos</h2>
           </Reveal>
+
+          {fotosEventos.length > 0 && (
+            <Reveal className="mb-10">
+              <GaleriaAuto
+                imagenes={fotosEventos}
+                alt="Galería de eventos"
+                className="shadow-brand"
+                intervalo={5500}
+              />
+            </Reveal>
+          )}
 
           {cargandoEventos ? (
             <SkeletonGrid count={3} />
@@ -415,7 +462,6 @@ export default function Inicio() {
                   />
                 </TiltCard>
 
-                {/* foto familiar: tarjeta propia, con su proporción real (evita recortes) */}
                 <TiltCard max={6} className="w-full max-w-xs rounded-2xl overflow-hidden border border-line shadow-brand-sm bg-white">
                   <div className="aspect-[3/4] overflow-hidden">
                     <motion.img
@@ -439,13 +485,20 @@ export default function Inicio() {
                 Marcolino Rodríguez
               </h3>
               <p className="text-ink/70 leading-relaxed mb-4">
-                Con años dedicados al servicio de la comunidad en Paz de Ariporo, el pastor Marcolino
+                Con años dedicados al servicio de la comunidad, el pastor Marcolino
                 ha guiado a Misión Panamericana con un corazón cercano y una pasión genuina por ver
                 vidas transformadas por la fe.
               </p>
               <p className="text-ink/70 leading-relaxed">
                 Junto a su familia, dedica su vida a predicar la Palabra, acompañar a cada hogar de la
                 congregación y sostener con esperanza a quienes más lo necesitan.
+              </p>
+              <p className="text-ink/50 text-sm mt-4 flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z" />
+                  <circle cx="12" cy="10" r="2.5" />
+                </svg>
+                {DIRECCION_IGLESIA}
               </p>
             </Reveal>
           </div>
@@ -458,8 +511,15 @@ export default function Inicio() {
           <h2 className="font-display text-3xl md:text-4xl text-ink mb-4">
             ¿Necesitas hablar con un pastor?
           </h2>
-          <p className="text-ink/70 max-w-lg mx-auto mb-8">
+          <p className="text-ink/70 max-w-lg mx-auto mb-2">
             Agenda una cita pastoral en el horario que más te convenga. Estamos aquí para ti.
+          </p>
+          <p className="text-ink/50 text-sm mb-8 flex items-center justify-center gap-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z" />
+              <circle cx="12" cy="10" r="2.5" />
+            </svg>
+            {DIRECCION_IGLESIA}
           </p>
           <Magnetic className="inline-block">
             <Link to="/citas" className="btn-gold shadow-gold">Agendar cita ahora</Link>

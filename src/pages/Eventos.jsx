@@ -8,6 +8,8 @@ import { PlaceholderEvento } from '../components/PlaceholderEvento';
 import { Reveal, StaggerGroup, StaggerItem } from '../components/Reveal';
 import { SkeletonGrid } from '../components/Skeleton';
 import { TiltCard } from '../components/TiltCard';
+import { GaleriaAuto } from '../components/GaleriaAuto';
+import { formatTime12h } from '../utils/formatTime';
 
 export default function Eventos() {
   const [tab, setTab] = useState('todos');
@@ -32,6 +34,11 @@ export default function Eventos() {
     .map((cat) => ({ categoria: cat, items: eventos.filter((e) => e.categoria === cat) }))
     .filter((g) => g.items.length > 0);
 
+  const todasFotos = eventos.flatMap((e) => [
+    ...(e.imagenUrl ? [e.imagenUrl] : []),
+    ...(e.imagenes || []).map((img) => img.url),
+  ]);
+
   return (
     <div>
       <section className="bg-amanecer relative overflow-hidden">
@@ -47,6 +54,20 @@ export default function Eventos() {
         </div>
         <Horizonte className="text-paper" />
       </section>
+
+      {/* Galería automática */}
+      {todasFotos.length > 0 && (
+        <section className="max-w-5xl mx-auto px-5 md:px-8 pt-10">
+          <Reveal>
+            <GaleriaAuto
+              imagenes={todasFotos}
+              alt="Galería de eventos"
+              className="shadow-brand"
+              intervalo={4500}
+            />
+          </Reveal>
+        </section>
+      )}
 
       <section className="max-w-6xl mx-auto px-5 md:px-8 py-14">
         {/* Filtros */}
@@ -115,21 +136,31 @@ export default function Eventos() {
                         <StaggerItem key={e.id}>
                           <TiltCard max={5} className="group block rounded-2xl overflow-hidden border border-line bg-white hover:shadow-brand hover:-translate-y-1 transition-all duration-300">
                           <Link to={`/eventos/${e.id}`} className="block">
-                            <div className="overflow-hidden h-40">
+                            <div className="overflow-hidden h-40 relative">
                               {e.imagenUrl ? (
                                 <img src={e.imagenUrl} alt={e.titulo} className="w-full h-40 object-cover transition-transform duration-500 group-hover:scale-110" />
                               ) : (
                                 <PlaceholderEvento categoria={e.categoria} className="w-full h-40 transition-transform duration-500 group-hover:scale-110" />
                               )}
+                              {e.imagenes?.length > 0 && (
+                                <div className="absolute top-2 right-2 bg-ink/60 backdrop-blur text-paper text-[10px] font-mono px-2 py-0.5 rounded-full">
+                                  +{e.imagenes.length} fotos
+                                </div>
+                              )}
                             </div>
                             <div className="p-4">
-                              <p className="font-mono text-[11px] text-rojo uppercase tracking-wide mb-1">
-                                {new Date(e.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}
-                              </p>
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="font-mono text-[11px] text-rojo uppercase tracking-wide">
+                                  {new Date(e.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                </p>
+                                {e.horaInicio && (
+                                  <span className="text-[11px] text-ink/40">· {formatTime12h(e.horaInicio)}</span>
+                                )}
+                              </div>
                               <h3 className="font-display text-lg text-ink leading-snug group-hover:text-azul transition-colors">
                                 {e.titulo}
                               </h3>
-                              {e.lugar && <p className="text-xs text-ink/50 mt-1">{e.lugar}</p>}
+                              {e.lugar && <p className="text-xs text-ink/50 mt-1">📍 {e.lugar}</p>}
                             </div>
                           </Link>
                           </TiltCard>

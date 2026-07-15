@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti';
 import { api } from '../api/client';
 import { Horizonte } from '../components/Horizonte';
 import { Reveal } from '../components/Reveal';
+import { formatTime12h } from '../utils/formatTime';
 
 const HORAS_DISPONIBLES = [
   '08:00', '09:00', '10:00', '11:00',
@@ -181,7 +182,7 @@ export default function AgendarCita() {
                 >
                   <option value="">Selecciona</option>
                   {HORAS_DISPONIBLES.map((h) => (
-                    <option key={h} value={h}>{h}</option>
+                    <option key={h} value={h}>{formatTime12h(h)}</option>
                   ))}
                 </select>
               </div>

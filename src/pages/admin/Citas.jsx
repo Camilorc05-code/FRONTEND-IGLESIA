@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
+import { formatTime12h } from '../../utils/formatTime';
 
 const ESTADOS = ['PENDIENTE', 'CONFIRMADA', 'COMPLETADA', 'CANCELADA'];
 const ESTILO_ESTADO = {
@@ -76,7 +77,7 @@ export default function Citas() {
               <p className="text-sm text-ink/60">
                 Con <strong className="text-ink">{c.pastor?.nombre}</strong> ·{' '}
                 {new Date(c.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })} ·{' '}
-                <span className="font-mono">{c.hora}</span>
+                <span className="font-mono">{formatTime12h(c.hora)}</span>
               </p>
               {c.motivo && <p className="text-sm text-ink/50 mt-1 italic">"{c.motivo}"</p>}
             </div>

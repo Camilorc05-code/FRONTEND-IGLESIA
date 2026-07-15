@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { PlaceholderEvento } from './PlaceholderEvento';
+import { formatTime12h } from '../utils/formatTime';
 
 export function CarruselEventos({ eventos }) {
   const trackRef = useRef(null);
@@ -45,9 +46,14 @@ export function CarruselEventos({ eventos }) {
               )}
             </div>
             <div className="p-4 pointer-events-none">
-              <p className="font-mono text-xs text-rojo uppercase tracking-wide mb-2">
-                {new Date(e.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}
-              </p>
+              <div className="flex items-center gap-2 mb-2">
+                <p className="font-mono text-xs text-rojo uppercase tracking-wide">
+                  {new Date(e.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
+                {e.horaInicio && (
+                  <span className="text-xs text-ink/40">· {formatTime12h(e.horaInicio)}</span>
+                )}
+              </div>
               <h3 className="font-display text-lg text-ink group-hover:text-azul transition-colors">{e.titulo}</h3>
               {e.lugar && <p className="text-sm text-ink/60 mt-2">{e.lugar}</p>}
             </div>
