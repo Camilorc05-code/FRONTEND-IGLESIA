@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { NavLink, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 
-const items = [
+const allItems = [
   { to: '/admin', label: 'Resumen', end: true },
   { to: '/admin/personas', label: 'Personas' },
   { to: '/admin/citas', label: 'Citas' },
-  { to: '/admin/servicios', label: 'Horarios' },
-  { to: '/admin/eventos', label: 'Eventos' },
+  { to: '/admin/servicios', label: 'Horarios', roles: ['ADMIN'] },
+  { to: '/admin/eventos', label: 'Eventos', roles: ['ADMIN'] },
+  { to: '/admin/usuarios', label: 'Usuarios', roles: ['ADMIN'] },
 ];
 
 export function RutaProtegida({ children }) {
@@ -22,6 +23,11 @@ export default function AdminLayout() {
   const { usuario, logout } = useAuth();
   const [abierto, setAbierto] = useState(false);
   const location = useLocation();
+
+  const items = useMemo(() => {
+    if (!usuario) return allItems;
+    return allItems.filter((it) => !it.roles || it.roles.includes(usuario.rol));
+  }, [usuario]);
 
   // Cierra el menú móvil automáticamente al cambiar de sección
   useEffect(() => setAbierto(false), [location.pathname]);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
@@ -9,8 +9,18 @@ export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [recordar, setRecordar] = useState(false);
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
+
+  // Cargar email guardado si existía
+  useEffect(() => {
+    const guardado = localStorage.getItem('login_email_recordado');
+    if (guardado) {
+      setEmail(guardado);
+      setRecordar(true);
+    }
+  }, []);
 
   async function enviar(e) {
     e.preventDefault();
@@ -18,6 +28,12 @@ export default function Login() {
     setCargando(true);
     try {
       await login(email, password);
+      // Guardar o limpiar email recordado
+      if (recordar) {
+        localStorage.setItem('login_email_recordado', email);
+      } else {
+        localStorage.removeItem('login_email_recordado');
+      }
       navigate('/admin');
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo iniciar sesión.');
@@ -49,6 +65,7 @@ export default function Login() {
               required
               type="email"
               className="input"
+              autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoFocus
@@ -60,9 +77,22 @@ export default function Login() {
               required
               type="password"
               className="input"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="recordar"
+              checked={recordar}
+              onChange={(e) => setRecordar(e.target.checked)}
+              className="w-4 h-4 rounded border-line text-azul focus:ring-gold cursor-pointer"
+            />
+            <label htmlFor="recordar" className="text-sm text-ink/60 cursor-pointer select-none">
+              Recordar mi correo
+            </label>
           </div>
           {error && <p className="text-rojo text-sm">{error}</p>}
           <button type="submit" disabled={cargando} className="btn-gold w-full disabled:opacity-60">

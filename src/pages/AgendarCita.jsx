@@ -5,6 +5,7 @@ import { api } from '../api/client';
 import { Horizonte } from '../components/Horizonte';
 import { Reveal } from '../components/Reveal';
 import { formatTime12h } from '../utils/formatTime';
+import CalendarCitas from '../components/CalendarCitas';
 
 const HORAS_DISPONIBLES = [
   '08:00', '09:00', '10:00', '11:00',
@@ -31,6 +32,12 @@ export default function AgendarCita() {
 
   function actualizar(campo, valor) {
     setForm((f) => ({ ...f, [campo]: valor }));
+  }
+
+  function seleccionarSlot({ fecha, hora }) {
+    setForm((f) => ({ ...f, fecha, hora }));
+    // Scroll al formulario
+    document.getElementById('formulario-cita')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   async function enviar(e) {
@@ -82,7 +89,21 @@ export default function AgendarCita() {
         <Horizonte className="text-paper" />
       </section>
 
-      <section className="max-w-xl mx-auto px-5 md:px-8 py-14">
+      {/* Calendario de disponibilidad */}
+      <section className="max-w-2xl mx-auto px-5 md:px-8 pt-10">
+        <Reveal>
+          <h2 className="font-display text-xl text-ink mb-2 text-center">Consulta la disponibilidad</h2>
+          <p className="text-ink/50 text-sm text-center mb-6">
+            Selecciona un día en el calendario para ver los horarios libres
+          </p>
+          <CalendarCitas
+            pastorId={form.pastorId || undefined}
+            onSelectSlot={seleccionarSlot}
+          />
+        </Reveal>
+      </section>
+
+      <section className="max-w-xl mx-auto px-5 md:px-8 py-14" id="formulario-cita">
         <AnimatePresence mode="wait">
         {resultado ? (
           <motion.div
@@ -111,6 +132,12 @@ export default function AgendarCita() {
             onSubmit={enviar}
             className="space-y-5"
           >
+            <p className="text-center text-ink/40 text-sm font-medium uppercase tracking-wide">
+              {form.fecha && form.hora
+                ? `Horario seleccionado: ${new Date(form.fecha + 'T12:00:00').toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })} a las ${formatTime12h(form.hora)}`
+                : 'O completa el formulario manualmente'}
+            </p>
+
             <div>
               <label className="label">Nombre completo *</label>
               <input
@@ -151,10 +178,10 @@ export default function AgendarCita() {
                 value={form.pastorId}
                 onChange={(e) => actualizar('pastorId', e.target.value)}
               >
-                <option value="">Selecciona un pastor</option>
+                <option value="">Selecciona un pastor o líder</option>
                 {pastores.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.nombre}
+                    {p.nombre} ({p.rol === 'PASTOR' ? 'Pastor' : 'Líder'})
                   </option>
                 ))}
               </select>

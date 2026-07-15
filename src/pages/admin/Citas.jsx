@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
 import { formatTime12h } from '../../utils/formatTime';
+import CalendarCitas from '../../components/CalendarCitas';
+import { useAuth } from '../../context/AuthContext';
 
 const ESTADOS = ['PENDIENTE', 'CONFIRMADA', 'COMPLETADA', 'CANCELADA'];
 const ESTILO_ESTADO = {
@@ -11,16 +13,20 @@ const ESTILO_ESTADO = {
 };
 
 export default function Citas() {
+  const { usuario } = useAuth();
   const [citas, setCitas] = useState([]);
   const [filtroEstado, setFiltroEstado] = useState('');
+  const [vista, setVista] = useState('lista'); // 'lista' | 'calendario'
   const [cargando, setCargando] = useState(true);
 
   async function cargar() {
     setCargando(true);
     try {
-      const { data } = await api.get('/citas', {
-        params: filtroEstado ? { estado: filtroEstado } : {},
-      });
+      const params = {};
+      if (filtroEstado) params.estado = filtroEstado;
+      // Pastor/Líder solo ve sus propias citas
+      if (usuario?.rol !== 'ADMIN') params.pastorId = usuario?.id;
+      const { data } = await api.get('/citas', { params });
       setCitas(data);
     } catch {
       // silencioso
@@ -52,59 +58,92 @@ export default function Citas() {
           <h1 className="font-display text-2xl text-ink">Citas pastorales</h1>
           <p className="text-ink/50 text-sm">Solicitudes hechas desde la página pública</p>
         </div>
-        <select className="input max-w-[200px]" value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
-          <option value="">Todos los estados</option>
-          {ESTADOS.map((e) => <option key={e} value={e}>{e}</option>)}
-        </select>
-      </div>
-
-      <div className="space-y-3">
-        {cargando && <p className="text-ink/40">Cargando…</p>}
-        {!cargando && citas.length === 0 && <p className="text-ink/40">No hay citas para mostrar.</p>}
-
-        {citas.map((c) => (
-          <div key={c.id} className="bg-white rounded-xl border border-line p-5 flex flex-col md:flex-row md:items-center gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h3 className="font-display text-lg text-ink">{c.nombreSolicitante}</h3>
-                <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${ESTILO_ESTADO[c.estado]}`}>
-                  {c.estado}
-                </span>
-              </div>
-              <p className="text-sm text-ink/60 mt-1">
-                📞 {c.telefonoSolicitante} {c.emailSolicitante && `· ${c.emailSolicitante}`}
-              </p>
-              <p className="text-sm text-ink/60">
-                Con <strong className="text-ink">{c.pastor?.nombre}</strong> ·{' '}
-                {new Date(c.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })} ·{' '}
-                <span className="font-mono">{formatTime12h(c.hora)}</span>
-              </p>
-              {c.motivo && <p className="text-sm text-ink/50 mt-1 italic">"{c.motivo}"</p>}
-            </div>
-
-            <div className="flex gap-2 shrink-0">
-              {c.estado === 'PENDIENTE' && (
-                <button onClick={() => cambiarEstado(c.id, 'CONFIRMADA')} className="btn-outline !py-1.5 !px-3 text-xs">
-                  Confirmar
-                </button>
-              )}
-              {c.estado === 'CONFIRMADA' && (
-                <button onClick={() => cambiarEstado(c.id, 'COMPLETADA')} className="btn-outline !py-1.5 !px-3 text-xs">
-                  Marcar completada
-                </button>
-              )}
-              {c.estado !== 'CANCELADA' && c.estado !== 'COMPLETADA' && (
-                <button onClick={() => cambiarEstado(c.id, 'CANCELADA')} className="btn-ghost !py-1.5 !px-3 text-xs text-rojo">
-                  Cancelar
-                </button>
-              )}
-              <button onClick={() => eliminar(c.id)} className="btn-ghost !py-1.5 !px-3 text-xs">
-                Eliminar
-              </button>
-            </div>
+        <div className="flex items-center gap-3">
+          {/* Toggle vista */}
+          <div className="flex bg-ink/5 rounded-lg p-0.5">
+            <button
+              onClick={() => setVista('lista')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                vista === 'lista' ? 'bg-white text-ink shadow-sm' : 'text-ink/50 hover:text-ink'
+              }`}
+            >
+              Lista
+            </button>
+            <button
+              onClick={() => setVista('calendario')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                vista === 'calendario' ? 'bg-white text-ink shadow-sm' : 'text-ink/50 hover:text-ink'
+              }`}
+            >
+              Calendario
+            </button>
           </div>
-        ))}
+          <select className="input max-w-[200px]" value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
+            <option value="">Todos los estados</option>
+            {ESTADOS.map((e) => <option key={e} value={e}>{e}</option>)}
+          </select>
+        </div>
       </div>
+
+      {vista === 'calendario' ? (
+        <div className="max-w-2xl">
+          <CalendarCitas
+            pastorId={usuario?.rol !== 'ADMIN' ? usuario?.id : undefined}
+            modoAdmin={true}
+          />
+          <p className="text-xs text-ink/40 mt-3 text-center">
+            Selecciona un día para ver las citas programadas y los horarios disponibles
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {cargando && <p className="text-ink/40">Cargando…</p>}
+          {!cargando && citas.length === 0 && <p className="text-ink/40">No hay citas para mostrar.</p>}
+
+          {citas.map((c) => (
+            <div key={c.id} className="bg-white rounded-xl border border-line p-5 flex flex-col md:flex-row md:items-center gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h3 className="font-display text-lg text-ink">{c.nombreSolicitante}</h3>
+                  <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${ESTILO_ESTADO[c.estado]}`}>
+                    {c.estado}
+                  </span>
+                </div>
+                <p className="text-sm text-ink/60 mt-1">
+                  📞 {c.telefonoSolicitante} {c.emailSolicitante && `· ${c.emailSolicitante}`}
+                </p>
+                <p className="text-sm text-ink/60">
+                  Con <strong className="text-ink">{c.pastor?.nombre}</strong> ·{' '}
+                  {new Date(c.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })} ·{' '}
+                  <span className="font-mono">{formatTime12h(c.hora)}</span>
+                </p>
+                {c.motivo && <p className="text-sm text-ink/50 mt-1 italic">"{c.motivo}"</p>}
+              </div>
+
+              <div className="flex gap-2 shrink-0">
+                {c.estado === 'PENDIENTE' && (
+                  <button onClick={() => cambiarEstado(c.id, 'CONFIRMADA')} className="btn-outline !py-1.5 !px-3 text-xs">
+                    Confirmar
+                  </button>
+                )}
+                {c.estado === 'CONFIRMADA' && (
+                  <button onClick={() => cambiarEstado(c.id, 'COMPLETADA')} className="btn-outline !py-1.5 !px-3 text-xs">
+                    Marcar completada
+                  </button>
+                )}
+                {c.estado !== 'CANCELADA' && c.estado !== 'COMPLETADA' && (
+                  <button onClick={() => cambiarEstado(c.id, 'CANCELADA')} className="btn-ghost !py-1.5 !px-3 text-xs text-rojo">
+                    Cancelar
+                  </button>
+                )}
+                <button onClick={() => eliminar(c.id)} className="btn-ghost !py-1.5 !px-3 text-xs">
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

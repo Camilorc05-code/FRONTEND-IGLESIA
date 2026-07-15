@@ -16,6 +16,7 @@ import Personas from './pages/admin/Personas';
 import Citas from './pages/admin/Citas';
 import ServiciosAdmin from './pages/admin/ServiciosAdmin';
 import EventosAdmin from './pages/admin/EventosAdmin';
+import UsuariosAdmin from './pages/admin/UsuariosAdmin';
 
 export default function App() {
   return (
@@ -49,6 +50,7 @@ export default function App() {
             <Route path="citas" element={<Citas />} />
             <Route path="servicios" element={<ServiciosAdmin />} />
             <Route path="eventos" element={<EventosAdmin />} />
+            <Route path="usuarios" element={<UsuariosAdmin />} />
           </Route>
 
           <Route path="*" element={<Inicio />} />
