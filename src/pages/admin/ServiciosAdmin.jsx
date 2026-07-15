@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../../api/client';
 import { formatTimeRange12h } from '../../utils/formatTime';
+import { ImageUploader, ImageUploaderSingle } from '../../components/ImageUploader';
 
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const VACIO = { nombre: '', diaSemana: 'Domingo', horaInicio: '', horaFin: '', lugar: '', descripcion: '', imagenUrl: '' };
@@ -11,8 +12,7 @@ export default function ServiciosAdmin() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando, setEditando] = useState(null);
   const [form, setForm] = useState(VACIO);
-  const [fotosTexto, setFotosTexto] = useState('');
-  const [previewCover, setPreviewCover] = useState('');
+  const [galeriaUrls, setGaleriaUrls] = useState([]);
   const [guardando, setGuardando] = useState(false);
 
   async function cargar() {
@@ -24,16 +24,14 @@ export default function ServiciosAdmin() {
 
   function abrirNuevo() {
     setForm(VACIO);
-    setFotosTexto('');
-    setPreviewCover('');
+    setGaleriaUrls([]);
     setEditando(null);
     setModalAbierto(true);
   }
 
   function abrirEditar(s) {
     setForm({ ...VACIO, ...s });
-    setFotosTexto((s.imagenes || []).map((img) => img.url).join('\n'));
-    setPreviewCover(s.imagenUrl || '');
+    setGaleriaUrls((s.imagenes || []).map((img) => img.url));
     setEditando(s.id);
     setModalAbierto(true);
   }
@@ -41,8 +39,7 @@ export default function ServiciosAdmin() {
   async function guardar(e) {
     e.preventDefault();
     setGuardando(true);
-    const imagenes = fotosTexto.split('\n').map((s) => s.trim()).filter(Boolean);
-    const payload = { ...form, imagenes };
+    const payload = { ...form, imagenes: galeriaUrls };
     try {
       if (editando) await api.put(`/servicios/${editando}`, payload);
       else await api.post('/servicios', payload);
@@ -60,8 +57,6 @@ export default function ServiciosAdmin() {
     await api.delete(`/servicios/${id}`);
     cargar();
   }
-
-  const fotosPreview = fotosTexto.split('\n').map((s) => s.trim()).filter(Boolean);
 
   return (
     <div className="p-4 md:p-8">
@@ -84,14 +79,9 @@ export default function ServiciosAdmin() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-white rounded-xl border border-line overflow-hidden hover:shadow-brand-sm transition-shadow"
             >
-              {/* Galería mini si tiene fotos */}
               {(s.imagenUrl || s.imagenes?.length > 0) && (
                 <div className="h-32 overflow-hidden bg-ink/5 relative">
-                  {s.imagenUrl ? (
-                    <img src={s.imagenUrl} alt={s.nombre} className="w-full h-32 object-cover" />
-                  ) : s.imagenes?.[0] ? (
-                    <img src={s.imagenes[0].url} alt={s.nombre} className="w-full h-32 object-cover" />
-                  ) : null}
+                  <img src={s.imagenUrl || s.imagenes?.[0]?.url} alt={s.nombre} className="w-full h-32 object-cover" />
                   {s.imagenes?.length > 0 && (
                     <div className="absolute top-2 right-2 bg-ink/60 backdrop-blur text-paper text-xs font-mono px-2 py-0.5 rounded-full">
                       📷 {s.imagenes.length}
@@ -110,7 +100,6 @@ export default function ServiciosAdmin() {
                       {formatTimeRange12h(s.horaInicio, s.horaFin)}
                     </p>
                     {s.lugar && <p className="text-sm text-ink/60 mt-1">📍 {s.lugar}</p>}
-                    {s.descripcion && <p className="text-xs text-ink/40 mt-1 line-clamp-2">{s.descripcion}</p>}
                   </div>
                 </div>
                 <div className="flex gap-3 mt-3 pt-3 border-t border-line/50">
@@ -189,51 +178,20 @@ export default function ServiciosAdmin() {
                     onChange={(e) => setForm({ ...form, descripcion: e.target.value })} />
                 </div>
 
-                {/* Imagen de portada */}
-                <div>
-                  <label className="label">Foto de portada (URL)</label>
-                  <input className="input" placeholder="https://ejemplo.com/foto.jpg"
-                    value={form.imagenUrl || ''}
-                    onChange={(e) => {
-                      setForm({ ...form, imagenUrl: e.target.value });
-                      setPreviewCover(e.target.value);
-                    }} />
-                  {previewCover && (
-                    <div className="mt-2 rounded-lg overflow-hidden h-28 bg-ink/5">
-                      <img src={previewCover} alt="Vista previa" className="w-full h-28 object-cover"
-                        onError={(e) => { e.target.style.display = 'none'; }} />
-                    </div>
-                  )}
-                </div>
+                {/* Subir foto de portada */}
+                <ImageUploaderSingle
+                  imagen={form.imagenUrl || ''}
+                  onChange={(url) => setForm({ ...form, imagenUrl: url })}
+                  label="Foto de portada"
+                />
 
-                {/* Galería de fotos */}
-                <div>
-                  <label className="label">Galería de fotos (una URL por línea)</label>
-                  <textarea
-                    className="input min-h-24 font-mono text-xs"
-                    placeholder={'https://ejemplo.com/foto1.jpg\nhttps://ejemplo.com/foto2.jpg'}
-                    value={fotosTexto}
-                    onChange={(e) => setFotosTexto(e.target.value)}
-                  />
-                  <p className="text-xs text-ink/40 mt-1">
-                    Sube tus fotos a Imgur, Cloudinary, etc. y pega los enlaces directos.
-                  </p>
-                  {fotosPreview.length > 0 && (
-                    <div className="mt-2 grid grid-cols-4 gap-1.5">
-                      {fotosPreview.slice(0, 8).map((url, i) => (
-                        <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-ink/5">
-                          <img src={url} alt="" className="w-full h-full object-cover"
-                            onError={(e) => { e.target.parentElement.style.display = 'none'; }} />
-                          {i === 7 && fotosPreview.length > 8 && (
-                            <div className="absolute inset-0 bg-ink/50 flex items-center justify-center">
-                              <span className="text-paper text-xs font-mono">+{fotosPreview.length - 8}</span>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                {/* Subir galería de fotos */}
+                <ImageUploader
+                  imagenes={galeriaUrls}
+                  onChange={setGaleriaUrls}
+                  label="Galería de fotos"
+                  maximo={20}
+                />
 
                 <div className="flex gap-3 pt-2">
                   <button type="submit" disabled={guardando} className="btn-gold flex-1 disabled:opacity-60">

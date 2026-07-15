@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../../api/client';
 import { formatTime12h } from '../../utils/formatTime';
+import { ImageUploader, ImageUploaderSingle } from '../../components/ImageUploader';
 
 const VACIO = {
   titulo: '', fecha: '', horaInicio: '', horaFin: '', lugar: '',
@@ -14,8 +15,7 @@ export default function EventosAdmin() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando, setEditando] = useState(null);
   const [form, setForm] = useState(VACIO);
-  const [fotosTexto, setFotosTexto] = useState('');
-  const [previewCover, setPreviewCover] = useState('');
+  const [galeriaUrls, setGaleriaUrls] = useState([]);
   const [guardando, setGuardando] = useState(false);
 
   async function cargar() {
@@ -30,16 +30,14 @@ export default function EventosAdmin() {
 
   function abrirNuevo() {
     setForm(VACIO);
-    setFotosTexto('');
-    setPreviewCover('');
+    setGaleriaUrls([]);
     setEditando(null);
     setModalAbierto(true);
   }
 
   function abrirEditar(e) {
     setForm({ ...VACIO, ...e, fecha: e.fecha.split('T')[0] });
-    setFotosTexto((e.imagenes || []).map((img) => img.url).join('\n'));
-    setPreviewCover(e.imagenUrl || '');
+    setGaleriaUrls((e.imagenes || []).map((img) => img.url));
     setEditando(e.id);
     setModalAbierto(true);
   }
@@ -47,8 +45,7 @@ export default function EventosAdmin() {
   async function guardar(e) {
     e.preventDefault();
     setGuardando(true);
-    const imagenes = fotosTexto.split('\n').map((s) => s.trim()).filter(Boolean);
-    const payload = { ...form, imagenes };
+    const payload = { ...form, imagenes: galeriaUrls };
     try {
       if (editando) await api.put(`/eventos/${editando}`, payload);
       else await api.post('/eventos', payload);
@@ -66,8 +63,6 @@ export default function EventosAdmin() {
     await api.delete(`/eventos/${id}`);
     cargar();
   }
-
-  const fotosPreview = fotosTexto.split('\n').map((s) => s.trim()).filter(Boolean);
 
   return (
     <div className="p-4 md:p-8">
@@ -90,7 +85,6 @@ export default function EventosAdmin() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-white rounded-xl border border-line overflow-hidden hover:shadow-brand-sm transition-shadow"
             >
-              {/* Imagen del evento */}
               <div className="h-36 overflow-hidden bg-ink/5 relative">
                 {e.imagenUrl ? (
                   <img src={e.imagenUrl} alt={e.titulo} className="w-full h-36 object-cover" />
@@ -201,51 +195,20 @@ export default function EventosAdmin() {
                     onChange={(e) => setForm({ ...form, lugar: e.target.value })} />
                 </div>
 
-                {/* Imagen de portada */}
-                <div>
-                  <label className="label">Foto de portada (URL)</label>
-                  <input className="input" placeholder="https://ejemplo.com/foto.jpg"
-                    value={form.imagenUrl || ''}
-                    onChange={(e) => {
-                      setForm({ ...form, imagenUrl: e.target.value });
-                      setPreviewCover(e.target.value);
-                    }} />
-                  {previewCover && (
-                    <div className="mt-2 rounded-lg overflow-hidden h-28 bg-ink/5">
-                      <img src={previewCover} alt="Vista previa" className="w-full h-28 object-cover"
-                        onError={(e) => { e.target.style.display = 'none'; }} />
-                    </div>
-                  )}
-                </div>
+                {/* Subir foto de portada */}
+                <ImageUploaderSingle
+                  imagen={form.imagenUrl || ''}
+                  onChange={(url) => setForm({ ...form, imagenUrl: url })}
+                  label="Foto de portada"
+                />
 
-                {/* Galería de fotos */}
-                <div>
-                  <label className="label">Galería de fotos (una URL por línea)</label>
-                  <textarea
-                    className="input min-h-24 font-mono text-xs"
-                    placeholder={'https://ejemplo.com/foto1.jpg\nhttps://ejemplo.com/foto2.jpg'}
-                    value={fotosTexto}
-                    onChange={(e) => setFotosTexto(e.target.value)}
-                  />
-                  <p className="text-xs text-ink/40 mt-1">
-                    Sube tus fotos a Imgur, Cloudinary, etc. y pega los enlaces directos.
-                  </p>
-                  {fotosPreview.length > 0 && (
-                    <div className="mt-2 grid grid-cols-4 gap-1.5">
-                      {fotosPreview.slice(0, 8).map((url, i) => (
-                        <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-ink/5">
-                          <img src={url} alt="" className="w-full h-full object-cover"
-                            onError={(e) => { e.target.parentElement.style.display = 'none'; }} />
-                          {i === 7 && fotosPreview.length > 8 && (
-                            <div className="absolute inset-0 bg-ink/50 flex items-center justify-center">
-                              <span className="text-paper text-xs font-mono">+{fotosPreview.length - 8}</span>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                {/* Subir galería de fotos */}
+                <ImageUploader
+                  imagenes={galeriaUrls}
+                  onChange={setGaleriaUrls}
+                  label="Galería de fotos"
+                  maximo={20}
+                />
 
                 <div>
                   <label className="label">Descripción</label>
