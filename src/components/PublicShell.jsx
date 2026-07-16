@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Navbar, Footer } from './PublicLayout';
@@ -7,6 +8,11 @@ import { BotonWhatsapp } from './BotonWhatsapp';
 
 export default function PublicShell() {
   const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   return (
     <div className="min-h-screen flex flex-col">
       <ScrollProgress />

@@ -33,6 +33,11 @@ export default function AdminLayout() {
   // Cierra el menú móvil automáticamente al cambiar de sección
   useEffect(() => setAbierto(false), [location.pathname]);
 
+  // Scroll al inicio al cambiar de sección
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   return (
     <div className="min-h-screen bg-paper2 flex flex-col md:flex-row">
       {/* Barra superior — solo visible en móvil/tablet */}
