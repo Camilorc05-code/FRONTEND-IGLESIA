@@ -44,7 +44,8 @@ function FacebookVideoPlayer({ reel, activeId, setActiveId }) {
       setActiveId(null);
     } else {
       setActiveId(reel.id);
-      vid.play();
+      vid.muted = muted;
+      vid.play().catch(() => {});
     }
   }
 
@@ -53,16 +54,34 @@ function FacebookVideoPlayer({ reel, activeId, setActiveId }) {
     e.stopPropagation();
     const vid = videoRef.current;
     if (!vid) return;
-    vid.muted = !vid.muted;
-    setMuted(vid.muted);
-    if (vid.muted && isActive) {
+    const newMuted = !muted;
+    setMuted(newMuted);
+    vid.muted = newMuted;
+    if (!newMuted && !isActive) {
+      setActiveId(reel.id);
+      vid.play().catch(() => {});
+    }
+    if (newMuted && isActive) {
       vid.pause();
       setActiveId(null);
-    } else if (!vid.muted && !isActive) {
-      setActiveId(reel.id);
-      vid.play();
     }
   }
+
+  function onPlay() {
+    setActiveId(reel.id);
+  }
+
+  function onPause() {
+    if (isActive) setActiveId(null);
+  }
+
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    if (!isActive && !vid.paused) {
+      vid.pause();
+    }
+  }, [isActive]);
 
   return (
     <StaggerItem>
@@ -98,10 +117,13 @@ function FacebookVideoPlayer({ reel, activeId, setActiveId }) {
             ref={videoRef}
             src={reel.video}
             poster={reel.thumb}
-            muted={muted}
             loop
             playsInline
-            className="absolute inset-0 w-full h-full object-cover"
+            preload="metadata"
+            onPlay={onPlay}
+            onPause={onPause}
+            onClick={togglePlay}
+            className="absolute inset-0 w-full h-full object-cover cursor-pointer"
           />
 
           {/* Play overlay (when paused) */}
