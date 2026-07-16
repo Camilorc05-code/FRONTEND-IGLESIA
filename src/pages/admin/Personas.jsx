@@ -13,7 +13,7 @@ const VACIO = {
   ministerio: '',
   rolIglesia: '',
   notas: '',
-  fechaBautismo: '',
+  bautizado: false,
 };
 
 function calcularEdad(fechaNacimiento) {
@@ -86,9 +86,7 @@ export default function Personas() {
       fechaNacimiento: persona.fechaNacimiento
         ? new Date(persona.fechaNacimiento).toISOString().split('T')[0]
         : '',
-      fechaBautismo: persona.fechaBautismo
-        ? new Date(persona.fechaBautismo).toISOString().split('T')[0]
-        : '',
+      bautizado: persona.bautizado || false,
     });
     setEditando(persona.id);
     setModalAbierto(true);
@@ -101,7 +99,7 @@ export default function Personas() {
       const payload = {
         ...form,
         fechaNacimiento: form.fechaNacimiento || null,
-        fechaBautismo: form.fechaBautismo || null,
+        bautizado: !!form.bautizado,
       };
       if (editando) {
         await api.put(`/personas/${editando}`, payload);
@@ -125,8 +123,8 @@ export default function Personas() {
 
   const filtradas = personas.filter((p) => {
     if (filtroGrupo !== 'Todos' && grupoEdad(calcularEdad(p.fechaNacimiento)) !== filtroGrupo) return false;
-    if (filtroBautismo === 'Bautizados' && !p.fechaBautismo) return false;
-    if (filtroBautismo === 'No bautizados' && p.fechaBautismo) return false;
+    if (filtroBautismo === 'Bautizados' && !p.bautizado) return false;
+    if (filtroBautismo === 'No bautizados' && p.bautizado) return false;
     return true;
   });
 
@@ -137,8 +135,8 @@ export default function Personas() {
   }, {});
 
   const contadoresBautismo = {
-    Bautizados: personas.filter((p) => p.fechaBautismo).length,
-    'No bautizados': personas.filter((p) => !p.fechaBautismo).length,
+    Bautizados: personas.filter((p) => p.bautizado).length,
+    'No bautizados': personas.filter((p) => !p.bautizado).length,
   };
 
   return (
@@ -231,9 +229,9 @@ export default function Personas() {
                   </td>
                   <td className="px-5 py-3">
                     <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      p.fechaBautismo ? 'bg-azul/10 text-azul' : 'bg-ink/5 text-ink/40'
+                      p.bautizado ? 'bg-azul/10 text-azul' : 'bg-ink/5 text-ink/40'
                     }`}>
-                      {p.fechaBautismo ? 'Sí' : 'No'}
+                      {p.bautizado ? 'Sí' : 'No'}
                     </span>
                   </td>
                   <td className="px-5 py-3 text-ink/70">{p.telefono || '—'}</td>
@@ -334,12 +332,23 @@ export default function Personas() {
               </div>
 
               <div>
-                <label className="label">Fecha de bautismo</label>
-                <input type="date" className="input" value={form.fechaBautismo || ''}
-                  onChange={(e) => setForm({ ...form, fechaBautismo: e.target.value })} />
-                {form.fechaBautismo && (
-                  <p className="text-xs text-azul mt-1">Bautizado</p>
-                )}
+                <label className="label">¿Bautizado?</label>
+                <div className="flex gap-3 mt-1">
+                  {['No', 'Si'].map((op) => (
+                    <button
+                      key={op}
+                      type="button"
+                      onClick={() => setForm({ ...form, bautizado: op === 'Si' })}
+                      className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all duration-200 ${
+                        (op === 'Si' ? form.bautizado : !form.bautizado)
+                          ? 'border-azul bg-azul/5 text-azul'
+                          : 'border-line text-ink/50 hover:border-azul/30'
+                      }`}
+                    >
+                      {op === 'Si' ? 'Sí' : 'No'}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="flex gap-3 pt-2">
