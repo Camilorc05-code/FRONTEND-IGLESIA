@@ -4,7 +4,7 @@ import { Reveal, StaggerGroup, StaggerItem } from '../components/Reveal';
 import { Magnetic } from '../components/Magnetic';
 import { Horizonte } from '../components/Horizonte';
 
-import portadaFB from '../assets/redes/portada-facebook.jpg';
+import portadaFB from '../assets/iglesia-interior.jpg';
 import reelFB1 from '../assets/redes/reel-fb-1.jpg';
 import reelFB2 from '../assets/redes/reel-fb-2.jpg';
 import reelFB3 from '../assets/redes/reel-fb-3.jpg';
@@ -29,22 +29,22 @@ function extractIGReelId(url) {
   return m ? m[1] : null;
 }
 
-function FacebookVideoPlayer({ reel }) {
-  const [playing, setPlaying] = useState(false);
+function FacebookVideoPlayer({ reel, activeId, setActiveId }) {
   const [muted, setMuted] = useState(true);
   const videoRef = useRef(null);
+  const isActive = activeId === reel.id;
 
   function togglePlay(e) {
     e.preventDefault();
     e.stopPropagation();
     const vid = videoRef.current;
     if (!vid) return;
-    if (playing) {
+    if (isActive) {
       vid.pause();
-      setPlaying(false);
+      setActiveId(null);
     } else {
+      setActiveId(reel.id);
       vid.play();
-      setPlaying(true);
     }
   }
 
@@ -55,10 +55,13 @@ function FacebookVideoPlayer({ reel }) {
     if (!vid) return;
     vid.muted = !vid.muted;
     setMuted(vid.muted);
-  }
-
-  function onEnded() {
-    setPlaying(false);
+    if (vid.muted && isActive) {
+      vid.pause();
+      setActiveId(null);
+    } else if (!vid.muted && !isActive) {
+      setActiveId(reel.id);
+      vid.play();
+    }
   }
 
   return (
@@ -98,13 +101,12 @@ function FacebookVideoPlayer({ reel }) {
             muted={muted}
             loop
             playsInline
-            onEnded={onEnded}
             className="absolute inset-0 w-full h-full object-cover"
           />
 
           {/* Play overlay (when paused) */}
           <AnimatePresence>
-            {!playing && (
+            {!isActive && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -131,7 +133,7 @@ function FacebookVideoPlayer({ reel }) {
                   onClick={togglePlay}
                   className="w-8 h-8 rounded-full bg-white/10 backdrop-blur flex items-center justify-center hover:bg-white/20 transition-colors pointer-events-auto"
                 >
-                  {playing ? (
+                  {isActive ? (
                     <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
                   ) : (
                     <svg className="w-4 h-4 text-white ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -202,6 +204,7 @@ function PlatformSection({ title, subtitle, icon, color, gradient, url, btnLabel
 }
 
 export default function Redes() {
+  const [activeFBReel, setActiveFBReel] = useState(null);
   return (
     <div>
       <section className="bg-ink relative overflow-hidden">
@@ -247,7 +250,7 @@ export default function Redes() {
       >
         <StaggerGroup className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6" stagger={0.1}>
           {reelsFB.map((reel) => (
-            <FacebookVideoPlayer key={reel.id} reel={reel} />
+            <FacebookVideoPlayer key={reel.id} reel={reel} activeId={activeFBReel} setActiveId={setActiveFBReel} />
           ))}
         </StaggerGroup>
       </PlatformSection>
