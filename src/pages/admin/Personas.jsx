@@ -9,10 +9,37 @@ const VACIO = {
   telefono: '',
   email: '',
   direccion: '',
+  fechaNacimiento: '',
   ministerio: '',
   rolIglesia: '',
   notas: '',
 };
+
+function calcularEdad(fechaNacimiento) {
+  if (!fechaNacimiento) return null;
+  const hoy = new Date();
+  const nac = new Date(fechaNacimiento);
+  let edad = hoy.getFullYear() - nac.getFullYear();
+  const mes = hoy.getMonth() - nac.getMonth();
+  if (mes < 0 || (mes === 0 && hoy.getDate() < nac.getDate())) edad--;
+  return edad;
+}
+
+function grupoEdad(edad) {
+  if (edad === null) return 'Sin fecha';
+  if (edad <= 12) return 'Niños';
+  if (edad <= 17) return 'Jóvenes';
+  return 'Adultos';
+}
+
+function colorGrupo(g) {
+  if (g === 'Niños') return 'bg-rojo/10 text-rojo';
+  if (g === 'Jóvenes') return 'bg-azul/10 text-azul';
+  if (g === 'Adultos') return 'bg-gold/20 text-ink';
+  return 'bg-ink/5 text-ink/40';
+}
+
+const GRUPOS = ['Todos', 'Niños', 'Jóvenes', 'Adultos', 'Sin fecha'];
 
 export default function Personas() {
   const [personas, setPersonas] = useState([]);
@@ -20,14 +47,15 @@ export default function Personas() {
   const [search, setSearch] = useState('');
   const [cargando, setCargando] = useState(true);
   const [modalAbierto, setModalAbierto] = useState(false);
-  const [editando, setEditando] = useState(null); // id o null
+  const [editando, setEditando] = useState(null);
   const [form, setForm] = useState(VACIO);
   const [guardando, setGuardando] = useState(false);
+  const [filtroGrupo, setFiltroGrupo] = useState('Todos');
 
   async function cargar() {
     setCargando(true);
     try {
-      const { data } = await api.get('/personas', { params: { search, limit: 100 } });
+      const { data } = await api.get('/personas', { params: { search, limit: 200 } });
       setPersonas(data.data);
       setTotal(data.total);
     } catch {
@@ -38,9 +66,8 @@ export default function Personas() {
   }
 
   useEffect(() => {
-    const t = setTimeout(cargar, 300); // debounce de búsqueda
+    const t = setTimeout(cargar, 300);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   function abrirNuevo() {
@@ -50,7 +77,13 @@ export default function Personas() {
   }
 
   function abrirEditar(persona) {
-    setForm({ ...VACIO, ...persona });
+    setForm({
+      ...VACIO,
+      ...persona,
+      fechaNacimiento: persona.fechaNacimiento
+        ? new Date(persona.fechaNacimiento).toISOString().split('T')[0]
+        : '',
+    });
     setEditando(persona.id);
     setModalAbierto(true);
   }
@@ -59,10 +92,14 @@ export default function Personas() {
     e.preventDefault();
     setGuardando(true);
     try {
+      const payload = {
+        ...form,
+        fechaNacimiento: form.fechaNacimiento || null,
+      };
       if (editando) {
-        await api.put(`/personas/${editando}`, form);
+        await api.put(`/personas/${editando}`, payload);
       } else {
-        await api.post('/personas', form);
+        await api.post('/personas', payload);
       }
       setModalAbierto(false);
       cargar();
@@ -74,35 +111,65 @@ export default function Personas() {
   }
 
   async function eliminar(id) {
-    if (!confirm('¿Eliminar esta persona de la base de datos?')) return;
+    if (!confirm('¿Eliminar este miembro de la base de datos?')) return;
     await api.delete(`/personas/${id}`);
     cargar();
   }
+
+  const filtradas = personas.filter((p) => {
+    if (filtroGrupo === 'Todos') return true;
+    return grupoEdad(calcularEdad(p.fechaNacimiento)) === filtroGrupo;
+  });
+
+  const contadores = personas.reduce((acc, p) => {
+    const g = grupoEdad(calcularEdad(p.fechaNacimiento));
+    acc[g] = (acc[g] || 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <div className="p-4 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="font-display text-2xl text-ink">Personas</h1>
-          <p className="text-ink/50 text-sm">{total} registradas</p>
+          <h1 className="font-display text-2xl text-ink">Miembros</h1>
+          <p className="text-ink/50 text-sm">{total} registrados</p>
         </div>
         <button onClick={abrirNuevo} className="btn-gold !py-2.5">
-          + Agregar persona
+          + Agregar miembro
         </button>
       </div>
 
       <input
-        className="input max-w-sm mb-6"
+        className="input max-w-sm mb-4"
         placeholder="Buscar por nombre, documento o teléfono…"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
 
+      <div className="flex flex-wrap gap-2 mb-6">
+        {GRUPOS.map((g) => (
+          <button
+            key={g}
+            onClick={() => setFiltroGrupo(g)}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              filtroGrupo === g
+                ? 'bg-azul text-paper'
+                : 'bg-ink/5 text-ink/60 hover:bg-ink/10'
+            }`}
+          >
+            {g}
+            {g !== 'Todos' && contadores[g] ? ` (${contadores[g]})` : ''}
+          </button>
+        ))}
+      </div>
+
       <div className="bg-white rounded-2xl border border-line overflow-x-auto">
-        <table className="w-full text-sm min-w-[640px]">
+        <table className="w-full text-sm min-w-[740px]">
           <thead className="bg-paper2 text-ink/60 text-left">
             <tr>
               <th className="px-5 py-3 font-medium">Nombre</th>
+              <th className="px-5 py-3 font-medium">Edad</th>
+              <th className="px-5 py-3 font-medium">Grupo</th>
               <th className="px-5 py-3 font-medium">Teléfono</th>
               <th className="px-5 py-3 font-medium">Ministerio</th>
               <th className="px-5 py-3 font-medium">Rol</th>
@@ -111,27 +178,37 @@ export default function Personas() {
           </thead>
           <tbody className="divide-y divide-line">
             {cargando && (
-              <tr><td colSpan={5} className="px-5 py-6 text-center text-ink/40">Cargando…</td></tr>
+              <tr><td colSpan={7} className="px-5 py-6 text-center text-ink/40">Cargando…</td></tr>
             )}
-            {!cargando && personas.length === 0 && (
-              <tr><td colSpan={5} className="px-5 py-6 text-center text-ink/40">No hay personas registradas.</td></tr>
+            {!cargando && filtradas.length === 0 && (
+              <tr><td colSpan={7} className="px-5 py-6 text-center text-ink/40">No hay miembros registrados.</td></tr>
             )}
-            {personas.map((p) => (
-              <tr key={p.id} className="hover:bg-paper2/50">
-                <td className="px-5 py-3 font-medium text-ink">{p.nombres} {p.apellidos}</td>
-                <td className="px-5 py-3 text-ink/70">{p.telefono || '—'}</td>
-                <td className="px-5 py-3 text-ink/70">{p.ministerio || '—'}</td>
-                <td className="px-5 py-3 text-ink/70">{p.rolIglesia || '—'}</td>
-                <td className="px-5 py-3 text-right space-x-3 whitespace-nowrap">
-                  <button onClick={() => abrirEditar(p)} className="text-azul font-medium hover:text-rojo">
-                    Editar
-                  </button>
-                  <button onClick={() => eliminar(p.id)} className="text-rojo/70 font-medium hover:text-rojo">
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {filtradas.map((p) => {
+              const edad = calcularEdad(p.fechaNacimiento);
+              const grupo = grupoEdad(edad);
+              return (
+                <tr key={p.id} className="hover:bg-paper2/50">
+                  <td className="px-5 py-3 font-medium text-ink">{p.nombres} {p.apellidos}</td>
+                  <td className="px-5 py-3 text-ink/70">{edad !== null ? `${edad} años` : '—'}</td>
+                  <td className="px-5 py-3">
+                    <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${colorGrupo(grupo)}`}>
+                      {grupo}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 text-ink/70">{p.telefono || '—'}</td>
+                  <td className="px-5 py-3 text-ink/70">{p.ministerio || '—'}</td>
+                  <td className="px-5 py-3 text-ink/70">{p.rolIglesia || '—'}</td>
+                  <td className="px-5 py-3 text-right space-x-3 whitespace-nowrap">
+                    <button onClick={() => abrirEditar(p)} className="text-azul font-medium hover:text-rojo">
+                      Editar
+                    </button>
+                    <button onClick={() => eliminar(p.id)} className="text-rojo/70 font-medium hover:text-rojo">
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -143,7 +220,7 @@ export default function Personas() {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="font-display text-xl text-ink mb-5">
-              {editando ? 'Editar persona' : 'Agregar persona'}
+              {editando ? 'Editar miembro' : 'Agregar miembro'}
             </h2>
             <form onSubmit={guardar} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -161,9 +238,14 @@ export default function Personas() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="label">Documento</label>
-                  <input className="input" value={form.numeroDocumento || ''}
-                    onChange={(e) => setForm({ ...form, numeroDocumento: e.target.value })} />
+                  <label className="label">Fecha de nacimiento</label>
+                  <input type="date" className="input" value={form.fechaNacimiento || ''}
+                    onChange={(e) => setForm({ ...form, fechaNacimiento: e.target.value })} />
+                  {form.fechaNacimiento && (
+                    <p className="text-xs text-azul mt-1">
+                      {calcularEdad(form.fechaNacimiento)} años — {grupoEdad(calcularEdad(form.fechaNacimiento))}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="label">Teléfono</label>
@@ -172,10 +254,17 @@ export default function Personas() {
                 </div>
               </div>
 
-              <div>
-                <label className="label">Correo</label>
-                <input type="email" className="input" value={form.email || ''}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="label">Documento</label>
+                  <input className="input" value={form.numeroDocumento || ''}
+                    onChange={(e) => setForm({ ...form, numeroDocumento: e.target.value })} />
+                </div>
+                <div>
+                  <label className="label">Correo</label>
+                  <input type="email" className="input" value={form.email || ''}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                </div>
               </div>
 
               <div>

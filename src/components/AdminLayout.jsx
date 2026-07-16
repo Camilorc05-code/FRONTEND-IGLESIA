@@ -5,9 +5,9 @@ import { useAuth } from '../context/AuthContext';
 
 const allItems = [
   { to: '/admin', label: 'Resumen', end: true },
-  { to: '/admin/personas', label: 'Personas' },
+  { to: '/admin/personas', label: 'Miembros' },
   { to: '/admin/citas', label: 'Citas' },
-  { to: '/admin/visitas', label: 'Visitas' },
+  { to: '/admin/visitas', label: 'Nuevos' },
   { to: '/admin/servicios', label: 'Horarios', roles: ['ADMIN'] },
   { to: '/admin/eventos', label: 'Eventos', roles: ['ADMIN'] },
   { to: '/admin/usuarios', label: 'Usuarios', roles: ['ADMIN'] },

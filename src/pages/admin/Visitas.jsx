@@ -53,7 +53,7 @@ export default function Visitas() {
     <div className="p-4 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="font-display text-2xl text-ink">Visitas</h1>
+          <h1 className="font-display text-2xl text-ink">Nuevos</h1>
           <p className="text-ink/50 text-sm">{visitas.length} personas registradas</p>
         </div>
       </div>
