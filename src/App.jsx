@@ -18,6 +18,7 @@ import ServiciosAdmin from './pages/admin/ServiciosAdmin';
 import EventosAdmin from './pages/admin/EventosAdmin';
 import UsuariosAdmin from './pages/admin/UsuariosAdmin';
 import Donaciones from './pages/Donaciones';
+import VisitanteForm from './pages/VisitanteForm';
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
             <Route path="/eventos/:id" element={<EventoDetalle />} />
             <Route path="/citas" element={<AgendarCita />} />
             <Route path="/donaciones" element={<Donaciones />} />
+            <Route path="/registrarse" element={<VisitanteForm />} />
 
           </Route>
 

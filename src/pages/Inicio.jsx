@@ -99,7 +99,7 @@ export default function Inicio() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
                   >
-                    {DIRECCION_IGLESIA}
+                    Paz de Ariporo · Casanare
                   </motion.p>
 
                   <h1 className="text-ink">
@@ -139,6 +139,11 @@ export default function Inicio() {
                       <Link to="/horarios" className="btn-gold shadow-gold">
                         Ver horarios de servicio
                         <span aria-hidden="true">→</span>
+                      </Link>
+                    </Magnetic>
+                    <Magnetic strength={0.25}>
+                      <Link to="/registrarse" className="btn-outline">
+                        Soy nuevo — Quiero registrarme
                       </Link>
                     </Magnetic>
                     <Magnetic strength={0.25}>

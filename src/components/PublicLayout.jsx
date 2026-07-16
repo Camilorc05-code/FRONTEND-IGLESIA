@@ -10,6 +10,7 @@ const links = [
   { to: '/eventos', label: 'Eventos' },
   { to: '/donaciones', label: 'Donaciones' },
   { to: '/citas', label: 'Agendar cita' },
+  { to: '/registrarse', label: 'Registrarse' },
 ];
 
 export function Navbar() {
