@@ -13,6 +13,8 @@ const ESTILOS = {
   Vigilia: { bg: '#0A2A57', fg: '#FFFFFF', icon: '🕯️' },
   'Día del Padre': { bg: '#024293', fg: '#FFFFFF', icon: '👔' },
   'Día de la Madre': { bg: '#E1011D', fg: '#FFFFFF', icon: '💐' },
+  'Día del Hombre': { bg: '#024293', fg: '#FFFFFF', icon: '💪' },
+  'Día de la Mujer': { bg: '#E1011D', fg: '#FFFFFF', icon: '👩' },
   Otro: { bg: '#3E52C3', fg: '#FFFFFF', icon: '✨' },
 };
 
