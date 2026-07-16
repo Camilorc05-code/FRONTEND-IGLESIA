@@ -17,6 +17,7 @@ import Citas from './pages/admin/Citas';
 import ServiciosAdmin from './pages/admin/ServiciosAdmin';
 import EventosAdmin from './pages/admin/EventosAdmin';
 import UsuariosAdmin from './pages/admin/UsuariosAdmin';
+import Donaciones from './pages/Donaciones';
 
 export default function App() {
   return (
@@ -31,6 +32,8 @@ export default function App() {
             <Route path="/eventos" element={<Eventos />} />
             <Route path="/eventos/:id" element={<EventoDetalle />} />
             <Route path="/citas" element={<AgendarCita />} />
+            <Route path="/donaciones" element={<Donaciones />} />
+
           </Route>
 
           {/* Login del panel */}
