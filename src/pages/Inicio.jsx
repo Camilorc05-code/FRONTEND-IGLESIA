@@ -149,6 +149,12 @@ export default function Inicio() {
                     <Magnetic strength={0.25}>
                       <Link to="/citas" className="btn-outline">Agendar una cita</Link>
                     </Magnetic>
+                    <Magnetic strength={0.25}>
+                      <a href="#ubicacion" className="btn-outline">
+                        Cómo llegar
+                        <span aria-hidden="true">↓</span>
+                      </a>
+                    </Magnetic>
                   </motion.div>
 
                   {servicios.length > 0 && (
@@ -511,7 +517,7 @@ export default function Inicio() {
       </section>
 
       {/* UBICACIÓN / MAPA */}
-      <section className="bg-paper2">
+      <section id="ubicacion" className="bg-paper2">
         <div className="max-w-6xl mx-auto px-5 md:px-8 py-16 md:py-20">
           <div className="grid md:grid-cols-2 gap-10 items-center">
             <Reveal>
