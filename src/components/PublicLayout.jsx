@@ -50,14 +50,14 @@ export function Navbar() {
           </span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-4 lg:gap-8 flex-wrap justify-end">
           {links.map((l) => {
             const isActive = location.pathname === l.to;
             return (
               <NavLink
                 key={l.to}
                 to={l.to}
-                className={`relative py-1 text-sm font-medium transition-colors ${
+                className={`relative py-1 text-xs lg:text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive ? 'text-rojo' : 'text-ink/70 hover:text-ink'
                 }`}
               >
@@ -72,7 +72,7 @@ export function Navbar() {
               </NavLink>
             );
           })}
-          <Link to="/admin/login" className="btn-outline !py-2 !px-4 text-xs">
+          <Link to="/admin/login" className="btn-outline !py-1.5 !px-3 text-xs">
             Panel interno
           </Link>
         </nav>
