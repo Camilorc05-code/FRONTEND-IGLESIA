@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { NavLink, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import logoMision from '../assets/logo-mision-transparente.png';
 
 const allItems = [
   { to: '/admin', label: 'Resumen', end: true },
@@ -42,20 +43,31 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-paper2 flex flex-col md:flex-row">
       {/* Barra superior — solo visible en móvil/tablet */}
       <header className="md:hidden sticky top-0 z-40 bg-ink text-paper flex items-center justify-between px-4 h-16 shrink-0">
-        <div>
-          <p className="font-display text-base leading-tight">Panel interno</p>
-          <p className="text-[11px] text-paper/50">{usuario?.nombre}</p>
+        <div className="flex items-center gap-3">
+          <img src={logoMision} alt="Misión Panamericana" className="w-8 h-8 object-contain" />
+          <div>
+            <p className="font-display text-base leading-tight">Panel interno</p>
+            <p className="text-[11px] text-paper/50">{usuario?.nombre}</p>
+          </div>
         </div>
-        <button
-          onClick={() => setAbierto((o) => !o)}
-          aria-label="Abrir menú del panel"
-          aria-expanded={abierto}
-          className="p-2 -mr-2"
-        >
-          <motion.svg width="24" height="24" viewBox="0 0 24 24" fill="none" animate={{ rotate: abierto ? 90 : 0 }} transition={{ duration: 0.2 }}>
-            <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </motion.svg>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={logout}
+            className="text-paper/50 hover:text-paper text-xs px-2 py-1"
+          >
+            Salir
+          </button>
+          <button
+            onClick={() => setAbierto((o) => !o)}
+            aria-label="Abrir menú del panel"
+            aria-expanded={abierto}
+            className="p-2 -mr-2"
+          >
+            <motion.svg width="24" height="24" viewBox="0 0 24 24" fill="none" animate={{ rotate: abierto ? 90 : 0 }} transition={{ duration: 0.2 }}>
+              <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </motion.svg>
+          </button>
+        </div>
       </header>
 
       {/* Menú desplegable móvil */}
@@ -95,13 +107,23 @@ export default function AdminLayout() {
       </AnimatePresence>
 
       {/* Sidebar fijo — solo desde tablet/desktop */}
-      <aside className="hidden md:flex w-60 bg-ink text-paper flex-col shrink-0">
+      <aside className="hidden md:flex w-60 bg-ink text-paper flex-col shrink-0 sticky top-0 h-screen">
         <div className="px-6 py-6 border-b border-paper/10">
-          <p className="font-display text-lg leading-tight">Panel interno</p>
-          <p className="text-xs text-paper/50 mt-1">{usuario?.nombre}</p>
-          <span className="inline-block mt-2 text-[10px] font-mono uppercase tracking-wide bg-gold text-ink px-2 py-0.5 rounded">
-            {usuario?.rol}
-          </span>
+          <div className="flex items-center gap-3 mb-3">
+            <img src={logoMision} alt="Misión Panamericana" className="w-10 h-10 object-contain" />
+            <div>
+              <p className="font-display text-sm leading-tight font-semibold">Misión Panamericana</p>
+              <p className="text-[10px] text-gold italic">Centro de Fe y Esperanza</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-paper/70">{usuario?.nombre}</p>
+              <span className="inline-block mt-1 text-[10px] font-mono uppercase tracking-wide bg-gold text-ink px-2 py-0.5 rounded">
+                {usuario?.rol}
+              </span>
+            </div>
+          </div>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
           {items.map((it) => (
