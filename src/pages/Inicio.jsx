@@ -626,7 +626,7 @@ export default function Inicio() {
               Sigue nuestras publicaciones, compartimos la palabra, eventos y el día a día de nuestra iglesia.
             </p>
           </Reveal>
-          <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-xl mx-auto" stagger={0.15}>
+          <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-xl mx-auto mb-10" stagger={0.15}>
             <StaggerItem>
               <a
                 href="https://www.facebook.com/share/1D2fXLv3hM/?mibextid=wwXIfr"
@@ -671,6 +671,16 @@ export default function Inicio() {
               </a>
             </StaggerItem>
           </StaggerGroup>
+          <Reveal>
+            <Magnetic className="inline-block">
+              <Link to="/redes" className="inline-flex items-center gap-2 text-gold hover:text-gold/80 text-sm font-semibold transition-colors">
+                Ver todos los reels y contenido
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </Link>
+            </Magnetic>
+          </Reveal>
         </div>
       </section>
     </div>

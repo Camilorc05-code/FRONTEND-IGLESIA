@@ -20,6 +20,7 @@ import Visitas from './pages/admin/Visitas';
 import UsuariosAdmin from './pages/admin/UsuariosAdmin';
 import Donaciones from './pages/Donaciones';
 import VisitanteForm from './pages/VisitanteForm';
+import Redes from './pages/Redes';
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
             <Route path="/citas" element={<AgendarCita />} />
             <Route path="/donaciones" element={<Donaciones />} />
             <Route path="/registrarse" element={<VisitanteForm />} />
+            <Route path="/redes" element={<Redes />} />
 
           </Route>
 

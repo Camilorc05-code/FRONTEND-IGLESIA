@@ -8,6 +8,7 @@ const links = [
   { to: '/', label: 'Inicio' },
   { to: '/horarios', label: 'Horarios' },
   { to: '/eventos', label: 'Eventos' },
+  { to: '/redes', label: 'Redes' },
   { to: '/donaciones', label: 'Donaciones' },
   { to: '/citas', label: 'Agendar cita' },
   { to: '/registrarse', label: 'Registrarse' },
