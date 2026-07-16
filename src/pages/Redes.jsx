@@ -31,8 +31,21 @@ function extractIGReelId(url) {
 
 function FacebookVideoPlayer({ reel, activeId, setActiveId }) {
   const [muted, setMuted] = useState(true);
+  const [hasStarted, setHasStarted] = useState(false);
   const videoRef = useRef(null);
   const isActive = activeId === reel.id;
+
+  function handleFirstPlay(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const vid = videoRef.current;
+    if (!vid) return;
+    setHasStarted(true);
+    setMuted(false);
+    vid.muted = false;
+    setActiveId(reel.id);
+    vid.play().catch(() => {});
+  }
 
   function togglePlay(e) {
     e.preventDefault();
@@ -44,7 +57,8 @@ function FacebookVideoPlayer({ reel, activeId, setActiveId }) {
       setActiveId(null);
     } else {
       setActiveId(reel.id);
-      vid.muted = muted;
+      setMuted(false);
+      vid.muted = false;
       vid.play().catch(() => {});
     }
   }
@@ -61,13 +75,10 @@ function FacebookVideoPlayer({ reel, activeId, setActiveId }) {
       setActiveId(reel.id);
       vid.play().catch(() => {});
     }
-    if (newMuted && isActive) {
-      vid.pause();
-      setActiveId(null);
-    }
   }
 
   function onPlay() {
+    setHasStarted(true);
     setActiveId(reel.id);
   }
 
@@ -80,26 +91,28 @@ function FacebookVideoPlayer({ reel, activeId, setActiveId }) {
     if (!vid) return;
     if (!isActive && !vid.paused) {
       vid.pause();
+      vid.muted = true;
+      setMuted(true);
     }
   }, [isActive]);
 
   return (
     <StaggerItem>
-      <a href={reel.url} target="_blank" rel="noopener noreferrer" className="group block">
-        <motion.div
-          whileHover={{ scale: 1.02, y: -4 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-black shadow-xl"
-        >
-          {/* Facebook top bar */}
-          <div className="absolute top-0 left-0 right-0 z-20 flex items-center gap-2 px-3 py-2 bg-gradient-to-b from-black/60 to-transparent">
-            <div className="w-7 h-7 rounded-full bg-[#1877F2] flex items-center justify-center">
-              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-white text-xs font-semibold truncate">Misión Panamericana</p>
-              <p className="text-white/50 text-[10px]">Reel</p>
-            </div>
+      <motion.div
+        whileHover={{ scale: 1.02, y: -4 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-black shadow-xl"
+      >
+        {/* Facebook top bar */}
+        <div className="absolute top-0 left-0 right-0 z-20 flex items-center gap-2 px-3 py-2 bg-gradient-to-b from-black/60 to-transparent">
+          <div className="w-7 h-7 rounded-full bg-[#1877F2] flex items-center justify-center">
+            <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white text-xs font-semibold truncate">Misión Panamericana</p>
+            <p className="text-white/50 text-[10px]">Reel</p>
+          </div>
+          {hasStarted && (
             <button
               onClick={toggleMute}
               className="w-7 h-7 rounded-full bg-white/10 backdrop-blur flex items-center justify-center hover:bg-white/20 transition-colors"
@@ -110,65 +123,46 @@ function FacebookVideoPlayer({ reel, activeId, setActiveId }) {
                 <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
               )}
             </button>
-          </div>
+          )}
+        </div>
 
-          {/* Video */}
-          <video
-            ref={videoRef}
-            src={reel.video}
-            poster={reel.thumb}
-            loop
-            playsInline
-            preload="metadata"
-            onPlay={onPlay}
-            onPause={onPause}
-            onClick={togglePlay}
-            className="absolute inset-0 w-full h-full object-cover cursor-pointer"
-          />
+        {/* Video */}
+        <video
+          ref={videoRef}
+          src={reel.video}
+          poster={reel.thumb}
+          loop
+          playsInline
+          preload="metadata"
+          onPlay={onPlay}
+          onPause={onPause}
+          onClick={togglePlay}
+          className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+        />
 
-          {/* Play overlay (when paused) */}
-          <AnimatePresence>
-            {!isActive && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 flex items-center justify-center z-10 cursor-pointer"
-                onClick={togglePlay}
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  className="relative w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-lg"
-                >
-                  <svg className="w-7 h-7 text-white ml-1" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Bottom bar */}
-          <div className="absolute bottom-0 left-0 right-0 z-20 p-3 bg-gradient-to-t from-black/70 to-transparent pointer-events-none">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={togglePlay}
-                  className="w-8 h-8 rounded-full bg-white/10 backdrop-blur flex items-center justify-center hover:bg-white/20 transition-colors pointer-events-auto"
-                >
-                  {isActive ? (
-                    <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                  ) : (
-                    <svg className="w-4 h-4 text-white ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                  )}
-                </button>
-              </div>
-              <span className="text-white/70 text-[10px] pointer-events-auto underline hover:text-white transition-colors">
-                Ver en Facebook
-              </span>
+        {/* Play button — starts video with sound */}
+        {!hasStarted && (
+          <button
+            onClick={handleFirstPlay}
+            className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 group/play"
+          >
+            <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-2xl group-hover/play:scale-110 transition-transform">
+              <svg className="w-7 h-7 text-gray-900 ml-1" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             </div>
-          </div>
-        </motion.div>
-      </a>
+          </button>
+        )}
+
+        {/* Ver en Facebook */}
+        <a
+          href={reel.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="absolute bottom-0 left-0 right-0 z-20 px-3 py-2 bg-gradient-to-t from-black/70 to-transparent pointer-events-auto"
+        >
+          <span className="text-white/70 text-[11px] hover:text-white transition-colors underline">Ver en Facebook ↗</span>
+        </a>
+      </motion.div>
     </StaggerItem>
   );
 }
