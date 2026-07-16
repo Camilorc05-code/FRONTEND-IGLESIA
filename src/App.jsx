@@ -16,6 +16,7 @@ import Personas from './pages/admin/Personas';
 import Citas from './pages/admin/Citas';
 import ServiciosAdmin from './pages/admin/ServiciosAdmin';
 import EventosAdmin from './pages/admin/EventosAdmin';
+import Visitas from './pages/admin/Visitas';
 import UsuariosAdmin from './pages/admin/UsuariosAdmin';
 import Donaciones from './pages/Donaciones';
 import VisitanteForm from './pages/VisitanteForm';
@@ -53,6 +54,7 @@ export default function App() {
             <Route index element={<Dashboard />} />
             <Route path="personas" element={<Personas />} />
             <Route path="citas" element={<Citas />} />
+            <Route path="visitas" element={<Visitas />} />
             <Route path="servicios" element={<ServiciosAdmin />} />
             <Route path="eventos" element={<EventosAdmin />} />
             <Route path="usuarios" element={<UsuariosAdmin />} />

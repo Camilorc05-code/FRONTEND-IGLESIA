@@ -27,7 +27,7 @@ import fotoFachada from '../assets/fachada-iglesia.jpg';
 import logoMiaImg from '../assets/logo-mia.png';
 import logoMjpImg from '../assets/logo-mjp.png';
 
-const DIRECCION_IGLESIA = 'Calle 12 #10-19, Barrio El Palmar';
+const DIRECCION_IGLESIA = 'Calle 12 #10-19';
 
 export default function Inicio() {
   const [servicios, setServicios] = useState([]);
@@ -541,7 +541,7 @@ export default function Inicio() {
                   </p>
                 </div>
                 <a
-                  href="https://www.google.com/maps/dir/?api=1&destination=Calle+12+%2310-19,+Barrio+El+Palmar,+Paz+de+Ariporo,+Casanare,+Colombia"
+                  href="https://www.google.com/maps/dir/?api=1&destination=Calle+12+%2310-19,+Paz+de+Ariporo,+Casanare,+Colombia"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-gold shadow-gold inline-flex items-center gap-2"
@@ -556,18 +556,27 @@ export default function Inicio() {
             </Reveal>
 
             <Reveal delay={0.1}>
-              <div className="rounded-2xl overflow-hidden border border-line shadow-brand aspect-[4/3] bg-ink/5">
+              <a
+                href="https://www.google.com/maps/dir/?api=1&destination=Calle+12+%2310-19,+Paz+de+Ariporo,+Casanare,+Colombia"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block rounded-2xl overflow-hidden border border-line shadow-brand aspect-[4/3] bg-ink/5 relative group"
+              >
                 <iframe
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3956.5!2d-71.9!3d5.88!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNcKwNTInNDguMCJOIDcxxoDUOS4wIlA!5e0!3m2!1ses!2sco!4v1"
                   width="100%"
                   height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen=""
+                  style={{ border: 0, pointerEvents: 'none' }}
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                   title="Ubicación de Misión Panamericana"
                 />
-              </div>
+                <div className="absolute inset-0 bg-azul/0 group-hover:bg-azul/5 transition-colors duration-300 flex items-center justify-center">
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-azul text-paper text-sm font-semibold px-4 py-2 rounded-full shadow-lg">
+                    Abrir en Google Maps
+                  </span>
+                </div>
+              </a>
             </Reveal>
           </div>
         </div>

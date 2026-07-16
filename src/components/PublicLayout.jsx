@@ -143,7 +143,7 @@ export function Footer() {
               <path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z" stroke="currentColor" strokeWidth="1.6" />
               <circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.6" />
             </svg>
-            Calle 12 #10-19, Barrio El Palmar
+            Calle 12 #10-19
           </p>
         </div>
         <div>
