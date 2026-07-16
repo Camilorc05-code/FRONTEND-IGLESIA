@@ -505,6 +505,69 @@ export default function Inicio() {
         </div>
       </section>
 
+      {/* UBICACIÓN / MAPA */}
+      <section className="bg-paper2">
+        <div className="max-w-6xl mx-auto px-5 md:px-8 py-16 md:py-20">
+          <div className="grid md:grid-cols-2 gap-10 items-center">
+            <Reveal>
+              <div>
+                <p className="eyebrow mb-3">Encuéntranos</p>
+                <h2 className="font-display text-3xl md:text-4xl text-ink mb-4">
+                  Nuestra ubicación
+                </h2>
+                <p className="text-ink/70 leading-relaxed mb-6">
+                  Estamos en el corazón de Paz de Ariporo, Casanare. Ven a visitarnos en cualquiera
+                  de nuestros servicios — eres bienvenido.
+                </p>
+                <div className="space-y-3 mb-8">
+                  <p className="flex items-center gap-3 text-ink/70">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-rojo shrink-0">
+                      <path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z" />
+                      <circle cx="12" cy="10" r="2.5" />
+                    </svg>
+                    {DIRECCION_IGLESIA}
+                  </p>
+                  <p className="flex items-center gap-3 text-ink/70">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-azul shrink-0">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    Paz de Ariporo, Casanare
+                  </p>
+                </div>
+                <a
+                  href="https://www.google.com/maps/dir/?api=1&destination=Calle+12+%2310-19,+Barrio+El+Palmar,+Paz+de+Ariporo,+Casanare,+Colombia"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-gold shadow-gold inline-flex items-center gap-2"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  Cómo llegar
+                </a>
+              </div>
+            </Reveal>
+
+            <Reveal delay={0.1}>
+              <div className="rounded-2xl overflow-hidden border border-line shadow-brand aspect-[4/3] bg-ink/5">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3956.5!2d-71.9!3d5.88!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNcKwNTInNDguMCJOIDcxxoDUOS4wIlA!5e0!3m2!1ses!2sco!4v1"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Ubicación de Misión Panamericana"
+                />
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
       {/* CTA CITAS */}
       <section className="max-w-6xl mx-auto px-5 md:px-8 py-16 md:py-24 text-center">
         <Reveal>

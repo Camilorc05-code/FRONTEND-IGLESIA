@@ -29,7 +29,7 @@ export default function Donaciones() {
           <Reveal>
             <p className="eyebrow mb-3">Dar con alegría</p>
             <h1 className="font-display font-semibold text-4xl md:text-5xl text-ink">
-              Ofrendas y Diezmos
+              Donaciones
             </h1>
             <p className="text-ink/70 max-w-xl mx-auto mt-4 leading-relaxed">
               Dar es un acto de adoración y de fe. Gracias por sembrar junto a nosotros para que la
@@ -69,7 +69,7 @@ export default function Donaciones() {
       <section className="bg-paper2">
         <div className="max-w-md mx-auto px-5 md:px-8 py-16 md:py-20">
           <Reveal>
-            <p className="eyebrow text-center mb-3">Cómo dar tu ofrenda o diezmo</p>
+            <p className="eyebrow text-center mb-3">Cómo hacer tu donación</p>
             <h2 className="font-display text-2xl md:text-3xl text-ink text-center mb-10">
               Por Nequi o Bre-B
             </h2>
