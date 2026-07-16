@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
  * - Botones de navegación lateral
  * - Responsive: se adapta al contenedor padre
  */
-export function GaleriaAuto({ imagenes, alt = 'Galería', className = '', intervalo = 4500, aspect = 'aspect-video' }) {
+export function GaleriaAuto({ imagenes, alt = 'Galería', className = '', intervalo = 3000, aspect = 'aspect-video' }) {
   const [actual, setActual] = useState(0);
   const [pausado, setPausado] = useState(false);
 

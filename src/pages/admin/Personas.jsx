@@ -225,7 +225,7 @@ export default function Personas() {
               return (
                 <tr key={p.id} className="hover:bg-paper2/50">
                   <td className="px-5 py-3 font-medium text-ink">{p.nombres} {p.apellidos}</td>
-                  <td className="px-5 py-3 text-ink/70">{p.numeroDocumento || '—'}</td>
+                  <td className="px-5 py-3 text-ink/70">{p.tipoDocumento ? `${p.tipoDocumento} ` : ''}{p.numeroDocumento || '—'}</td>
                   <td className="px-5 py-3 text-ink/70">{edad !== null ? `${edad} años` : '—'}</td>
                   <td className="px-5 py-3">
                     <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${colorGrupo(grupo)}`}>
@@ -304,9 +304,18 @@ export default function Personas() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="label">Documento</label>
+                  <label className="label">Tipo de documento</label>
+                  <select className="input" value={form.tipoDocumento || ''}
+                    onChange={(e) => setForm({ ...form, tipoDocumento: e.target.value })}>
+                    <option value="">Seleccionar</option>
+                    <option value="CC">Cédula de Ciudadanía</option>
+                    <option value="TI">Tarjeta de Identidad</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="label">Número de documento</label>
                   <input className="input" value={form.numeroDocumento || ''}
                     onChange={(e) => setForm({ ...form, numeroDocumento: e.target.value })} />
                 </div>

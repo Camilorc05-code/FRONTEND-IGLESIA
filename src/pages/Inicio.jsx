@@ -609,6 +609,70 @@ export default function Inicio() {
           </Magnetic>
         </Reveal>
       </section>
+
+      {/* REDES SOCIALES */}
+      <section className="bg-ink relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gold rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-rojo rounded-full blur-3xl" />
+        </div>
+        <div className="max-w-5xl mx-auto px-5 md:px-8 py-20 md:py-28 text-center relative z-10">
+          <Reveal>
+            <p className="eyebrow text-gold mb-3">Síguenos</p>
+            <h2 className="font-display text-3xl md:text-4xl text-paper mb-4">
+              Conéctate con nosotros
+            </h2>
+            <p className="text-paper/60 max-w-lg mx-auto mb-12">
+              Sigue nuestras publicaciones, compartimos la palabra, eventos y el día a día de nuestra iglesia.
+            </p>
+          </Reveal>
+          <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-xl mx-auto" stagger={0.15}>
+            <StaggerItem>
+              <a
+                href="https://www.facebook.com/share/1D2fXLv3hM/?mibextid=wwXIfr"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block bg-paper/5 hover:bg-paper/10 border border-paper/10 hover:border-gold/30 rounded-2xl p-8 transition-all duration-300 hover:scale-105"
+              >
+                <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-[#1877F2]/20 flex items-center justify-center group-hover:bg-[#1877F2]/30 transition-colors">
+                  <svg className="w-8 h-8 text-[#1877F2]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                </div>
+                <h3 className="font-display text-xl text-paper mb-2">Facebook</h3>
+                <p className="text-paper/40 text-sm">Misión Panamericana</p>
+                <p className="text-gold text-sm mt-3 group-hover:underline">Seguir en Facebook →</p>
+              </a>
+            </StaggerItem>
+            <StaggerItem>
+              <a
+                href="https://www.instagram.com/mision_panamericana_pza?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block bg-paper/5 hover:bg-paper/10 border border-paper/10 hover:border-rojo/30 rounded-2xl p-8 transition-all duration-300 hover:scale-105"
+              >
+                <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-gradient-to-br from-[#F56040]/20 via-[#C13584]/20 to-[#833AB4]/20 flex items-center justify-center group-hover:from-[#F56040]/30 group-hover:via-[#C13584]/30 group-hover:to-[#833AB4]/30 transition-colors">
+                  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+                    <defs>
+                      <linearGradient id="igGrad" x1="0" y1="24" x2="24" y2="0">
+                        <stop offset="0%" stopColor="#F56040"/>
+                        <stop offset="50%" stopColor="#C13584"/>
+                        <stop offset="100%" stopColor="#833AB4"/>
+                      </linearGradient>
+                    </defs>
+                    <rect x="2" y="2" width="20" height="20" rx="5" stroke="url(#igGrad)" strokeWidth="2"/>
+                    <circle cx="12" cy="12" r="5" stroke="url(#igGrad)" strokeWidth="2"/>
+                    <circle cx="17.5" cy="6.5" r="1.5" fill="url(#igGrad)"/>
+                  </svg>
+                </div>
+                <h3 className="font-display text-xl text-paper mb-2">Instagram</h3>
+                <p className="text-paper/40 text-sm">@mision_panamericana_pza</p>
+                <p className="text-rojo text-sm mt-3 group-hover:underline">Seguir en Instagram →</p>
+              </a>
+            </StaggerItem>
+          </StaggerGroup>
+        </div>
+      </section>
     </div>
   );
 }

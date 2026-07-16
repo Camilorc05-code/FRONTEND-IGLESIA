@@ -34,6 +34,8 @@ export default function VisitanteForm() {
     apellidos: '',
     email: '',
     telefono: '',
+    direccion: '',
+    barrio: '',
     adicional: '',
     asisteOtraIglesia: '',
     desearLlamada: '',
@@ -83,6 +85,8 @@ export default function VisitanteForm() {
         apellidos: form.apellidos.trim(),
         email: form.email.trim() || undefined,
         telefono: form.telefono.trim(),
+        direccion: form.direccion.trim() || undefined,
+        barrio: form.barrio.trim() || undefined,
         adicional: form.adicional.trim() || undefined,
         asisteOtraIglesia: form.asisteOtraIglesia,
         desearLlamada: form.desearLlamada,
@@ -219,7 +223,7 @@ export default function VisitanteForm() {
             {paso === 1 && (
               <Paso key="paso-1">
                 <h2 className="font-display text-xl text-ink mb-1">Información de contacto</h2>
-                <p className="text-ink/50 text-sm mb-6">Solo necesitamos tu celular, el correo es opcional</p>
+                <p className="text-ink/50 text-sm mb-6">Celular y correo, además nos ayuda saber tu dirección</p>
 
                 <div className="space-y-5">
                   <div>
@@ -241,6 +245,24 @@ export default function VisitanteForm() {
                       placeholder="Ej: maria@gmail.com"
                       value={form.email}
                       onChange={(e) => actualizar('email', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Barrio <span className="text-ink/30">(opcional)</span></label>
+                    <input
+                      className="input"
+                      placeholder="Ej: Barrio El Progreso"
+                      value={form.barrio}
+                      onChange={(e) => actualizar('barrio', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Dirección <span className="text-ink/30">(opcional)</span></label>
+                    <input
+                      className="input"
+                      placeholder="Ej: Calle 10 #5-20"
+                      value={form.direccion}
+                      onChange={(e) => actualizar('direccion', e.target.value)}
                     />
                   </div>
                 </div>
