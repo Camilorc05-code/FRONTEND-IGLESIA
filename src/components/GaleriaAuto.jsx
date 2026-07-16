@@ -39,16 +39,16 @@ export function GaleriaAuto({ imagenes, alt = 'Galería', className = '', interv
     >
       {/* Imagen actual con transición */}
       <div className={`relative ${aspect} overflow-hidden bg-ink/5`}>
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           <motion.img
             key={actual}
             src={imagenes[actual]}
             alt={`${alt} ${actual + 1}`}
             className="absolute inset-0 w-full h-full object-cover"
-            initial={{ opacity: 0, scale: 1.08 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
             draggable={false}
           />
         </AnimatePresence>

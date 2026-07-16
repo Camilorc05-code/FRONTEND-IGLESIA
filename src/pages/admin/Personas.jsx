@@ -14,6 +14,7 @@ const VACIO = {
   rolIglesia: '',
   notas: '',
   bautizado: false,
+  fechaBautismo: '',
 };
 
 function calcularEdad(fechaNacimiento) {
@@ -86,6 +87,9 @@ export default function Personas() {
       fechaNacimiento: persona.fechaNacimiento
         ? new Date(persona.fechaNacimiento).toISOString().split('T')[0]
         : '',
+      fechaBautismo: persona.fechaBautismo
+        ? new Date(persona.fechaBautismo).toISOString().split('T')[0]
+        : '',
       bautizado: persona.bautizado || false,
     });
     setEditando(persona.id);
@@ -99,6 +103,7 @@ export default function Personas() {
       const payload = {
         ...form,
         fechaNacimiento: form.fechaNacimiento || null,
+        fechaBautismo: form.bautizado && form.fechaBautismo ? form.fechaBautismo : null,
         bautizado: !!form.bautizado,
       };
       if (editando) {
@@ -228,9 +233,15 @@ export default function Personas() {
                     </span>
                   </td>
                   <td className="px-5 py-3">
-                    <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      p.bautizado ? 'bg-azul/10 text-azul' : 'bg-ink/5 text-ink/40'
-                    }`}>
+                    <span
+                      className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full cursor-default ${
+                        p.bautizado ? 'bg-azul/10 text-azul' : 'bg-ink/5 text-ink/40'
+                      }`}
+                      title={p.bautizado && p.fechaBautismo
+                        ? `Bautizado el ${new Date(p.fechaBautismo).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}`
+                        : p.bautizado ? 'Bautizado (sin fecha registrada)' : 'No bautizado'
+                      }
+                    >
                       {p.bautizado ? 'Sí' : 'No'}
                     </span>
                   </td>
@@ -338,7 +349,7 @@ export default function Personas() {
                     <button
                       key={op}
                       type="button"
-                      onClick={() => setForm({ ...form, bautizado: op === 'Si' })}
+                      onClick={() => setForm({ ...form, bautizado: op === 'Si', fechaBautismo: op === 'No' ? '' : form.fechaBautismo })}
                       className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all duration-200 ${
                         (op === 'Si' ? form.bautizado : !form.bautizado)
                           ? 'border-azul bg-azul/5 text-azul'
@@ -349,6 +360,13 @@ export default function Personas() {
                     </button>
                   ))}
                 </div>
+                {form.bautizado && (
+                  <div className="mt-3">
+                    <label className="label">Fecha de bautismo <span className="text-ink/30">(opcional)</span></label>
+                    <input type="date" className="input" value={form.fechaBautismo || ''}
+                      onChange={(e) => setForm({ ...form, fechaBautismo: e.target.value })} />
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 pt-2">
