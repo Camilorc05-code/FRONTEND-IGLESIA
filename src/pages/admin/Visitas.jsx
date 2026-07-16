@@ -32,6 +32,12 @@ export default function Visitas() {
     cargar();
   }, []);
 
+  async function eliminar(id) {
+    if (!confirm('¿Eliminar este registro de visita?')) return;
+    await api.delete(`/visitas/${id}`);
+    cargar();
+  }
+
   const filtradas = visitas.filter((v) => {
     if (!search) return true;
     const q = search.toLowerCase();
@@ -69,6 +75,7 @@ export default function Visitas() {
               <th className="px-5 py-3 font-medium">Otra iglesia</th>
               <th className="px-5 py-3 font-medium">Llamada</th>
               <th className="px-5 py-3 font-medium">Fecha</th>
+              <th className="px-5 py-3"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -98,6 +105,11 @@ export default function Visitas() {
                   </span>
                 </td>
                 <td className="px-5 py-3 text-ink/50 text-xs whitespace-nowrap">{formatFecha(v.createdAt)}</td>
+                <td className="px-5 py-3 text-right">
+                  <button onClick={() => eliminar(v.id)} className="text-rojo/70 font-medium hover:text-rojo text-xs">
+                    Eliminar
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
