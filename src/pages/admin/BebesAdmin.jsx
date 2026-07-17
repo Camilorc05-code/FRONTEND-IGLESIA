@@ -5,6 +5,7 @@ import { api } from '../../api/client';
 export default function BebesAdmin() {
   const [lista, setLista] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [search, setSearch] = useState('');
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando, setEditando] = useState(null);
   const [form, setForm] = useState({
@@ -85,8 +86,6 @@ export default function BebesAdmin() {
   function descargarExcel() {
     const token = localStorage.getItem('token');
     const API_URL = import.meta.env.VITE_API_URL || 'https://backend-iglesia-3op0.onrender.com';
-    window.open(`${API_URL}/api/excel/presentaciones`, '_blank');
-    // El token se envía por interceptor de axios, pero para window.open usamos fetch
     fetch(`${API_URL}/api/excel/presentaciones`, {
       headers: { Authorization: `Bearer ${token}` },
     }).then(r => r.blob()).then(blob => {
@@ -98,6 +97,11 @@ export default function BebesAdmin() {
       URL.revokeObjectURL(url);
     });
   }
+
+  const filtradas = lista.filter((b) => {
+    if (!search) return true;
+    return b.nombreBebe.toLowerCase().includes(search.toLowerCase());
+  });
 
   return (
     <div className="p-4 md:p-8">
@@ -116,14 +120,21 @@ export default function BebesAdmin() {
         </div>
       </div>
 
+      <input
+        className="input max-w-sm mb-6"
+        placeholder="Buscar por nombre del bebé…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
       {cargando && <p className="text-ink/40">Cargando…</p>}
-      {!cargando && lista.length === 0 && (
+      {!cargando && filtradas.length === 0 && (
         <p className="text-ink/40">No hay presentaciones registradas.</p>
       )}
 
       <div className="space-y-3">
         <AnimatePresence>
-          {lista.map((b) => (
+          {filtradas.map((b) => (
             <motion.div
               key={b.id}
               layout
