@@ -116,7 +116,7 @@ export default function Visitas() {
             {filtradas.map((v, i) => (
               <tr key={v.id} className="hover:bg-paper2/50">
                 <td className="px-3 py-3 text-ink/40 text-xs text-center">{i + 1}</td>
-                <td className="px-5 py-3 font-medium text-ink">{v.nombres} {v.apellidos}</td>
+                <td className="px-5 py-3 font-medium text-ink">{v.apellidos} {v.nombres}</td>
                 <td className="px-5 py-3 text-ink/70">{v.telefono}</td>
                 <td className="px-5 py-3 text-ink/70">{v.email || '—'}</td>
                 <td className="px-5 py-3 text-ink/60 text-xs">{[v.barrio, v.direccion].filter(Boolean).join(', ') || '—'}</td>
@@ -153,7 +153,7 @@ export default function Visitas() {
             {filtradas.filter((v) => v.adicional).map((v) => (
               <div key={v.id} className="bg-white rounded-xl border border-line p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-ink text-sm">{v.nombres} {v.apellidos}</span>
+                  <span className="font-medium text-ink text-sm">{v.apellidos} {v.nombres}</span>
                   <span className="text-xs text-ink/40">{formatFecha(v.createdAt)}</span>
                 </div>
                 <p className="text-ink/60 text-sm leading-relaxed">{v.adicional}</p>
@@ -181,7 +181,7 @@ export default function Visitas() {
             >
               <h3 className="font-display text-lg text-ink mb-1">Eliminar visita</h3>
               <p className="text-sm text-ink/60 mb-5">
-                ¿Qué deseas eliminar de <strong>{eliminando.nombres} {eliminando.apellidos}</strong>?
+                ¿Qué deseas eliminar de <strong>{eliminando.apellidos} {eliminando.nombres}</strong>?
               </p>
               <div className="space-y-2">
                 <button

@@ -244,7 +244,7 @@ export default function Personas() {
               return (
                 <tr key={p.id} className="hover:bg-paper2/50">
                   <td className="px-3 py-3 text-ink/40 text-xs text-center">{i + 1}</td>
-                  <td className="px-5 py-3 font-medium text-ink">{p.nombres} {p.apellidos}</td>
+                  <td className="px-5 py-3 font-medium text-ink">{p.apellidos} {p.nombres}</td>
                   <td className="px-5 py-3 text-ink/70">{p.tipoDocumento ? `${p.tipoDocumento} ` : ''}{p.numeroDocumento || '—'}</td>
                   <td className="px-5 py-3 text-ink/70">{edad !== null ? `${edad} años` : '—'}</td>
                   <td className="px-5 py-3">
