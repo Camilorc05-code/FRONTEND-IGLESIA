@@ -1,24 +1,36 @@
 {
-  "name": "Misión Panamericana - Centro de Fe y Esperanza",
-  "short_name": "Misión Panamericana",
+  "name": "Iglesia P.Z.A — Misión Panamericana",
+  "short_name": "Iglesia P.Z.A",
   "description": "Iglesia Misión Panamericana Centro de Fe y Esperanza - Paz de Ariporo, Casanare",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#0A2A57",
+  "background_color": "#D4A017",
+  "theme_color": "#D4A017",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/logo-192.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/logo-512.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "categories": ["religion", "social"],
