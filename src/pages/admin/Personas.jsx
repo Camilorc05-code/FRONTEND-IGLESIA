@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../../api/client';
 
 const VACIO = {
@@ -45,6 +46,8 @@ const GRUPOS = ['Todos', 'Niños', 'Jóvenes', 'Adultos', 'Sin fecha'];
 const BAUTIZO = ['Todos', 'Bautizados', 'No bautizados'];
 
 export default function Personas() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const highlightId = searchParams.get('highlight');
   const [personas, setPersonas] = useState([]);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
@@ -55,6 +58,7 @@ export default function Personas() {
   const [guardando, setGuardando] = useState(false);
   const [filtroGrupo, setFiltroGrupo] = useState('Todos');
   const [filtroBautismo, setFiltroBautismo] = useState('Todos');
+  const highlightedRef = useRef(null);
 
   async function cargar() {
     setCargando(true);
@@ -73,6 +77,14 @@ export default function Personas() {
     const t = setTimeout(cargar, 300);
     return () => clearTimeout(t);
   }, [search]);
+
+  useEffect(() => {
+    if (highlightId && personas.length > 0 && highlightedRef.current) {
+      highlightedRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const timer = setTimeout(() => setSearchParams({}), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightId, personas]);
 
   function abrirNuevo() {
     setForm(VACIO);
@@ -242,8 +254,13 @@ export default function Personas() {
             {filtradas.map((p, i) => {
               const edad = calcularEdad(p.fechaNacimiento);
               const grupo = grupoEdad(edad);
+              const isHighlighted = highlightId && String(p.id) === String(highlightId);
               return (
-                <tr key={p.id} className="hover:bg-paper2/50">
+                <tr
+                  key={p.id}
+                  ref={isHighlighted ? highlightedRef : null}
+                  className={`transition-all duration-1000 ${isHighlighted ? 'bg-amber-100 ring-2 ring-[#D4A017]' : 'hover:bg-paper2/50'}`}
+                >
                   <td className="px-3 py-3 text-ink/40 text-xs text-center">{i + 1}</td>
                   <td className="px-5 py-3 font-medium text-ink">{p.apellidos}</td>
                   <td className="px-5 py-3 font-medium text-ink">{p.nombres}</td>
