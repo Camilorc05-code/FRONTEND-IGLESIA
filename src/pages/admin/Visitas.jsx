@@ -56,6 +56,22 @@ export default function Visitas() {
           <h1 className="font-display text-2xl text-ink">Nuevos</h1>
           <p className="text-ink/50 text-sm">{visitas.length} personas registradas</p>
         </div>
+        <button onClick={() => {
+          const token = localStorage.getItem('token');
+          const API_URL = import.meta.env.VITE_API_URL || 'https://backend-iglesia-3op0.onrender.com';
+          fetch(`${API_URL}/api/excel/visitas`, { headers: { Authorization: `Bearer ${token}` } })
+            .then(r => r.blob())
+            .then(blob => {
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'nuevos.xlsx';
+              a.click();
+              URL.revokeObjectURL(url);
+            });
+        }} className="btn-outline !py-2.5 !px-4 text-sm">
+          Descargar Excel
+        </button>
       </div>
 
       <input
@@ -72,6 +88,7 @@ export default function Visitas() {
               <th className="px-5 py-3 font-medium">Nombre</th>
               <th className="px-5 py-3 font-medium">Celular</th>
               <th className="px-5 py-3 font-medium">Correo</th>
+              <th className="px-5 py-3 font-medium">Dirección</th>
               <th className="px-5 py-3 font-medium">Otra iglesia</th>
               <th className="px-5 py-3 font-medium">Llamada</th>
               <th className="px-5 py-3 font-medium">Fecha</th>
@@ -80,16 +97,17 @@ export default function Visitas() {
           </thead>
           <tbody className="divide-y divide-line">
             {cargando && (
-              <tr><td colSpan={6} className="px-5 py-6 text-center text-ink/40">Cargando…</td></tr>
+              <tr><td colSpan={8} className="px-5 py-6 text-center text-ink/40">Cargando…</td></tr>
             )}
             {!cargando && filtradas.length === 0 && (
-              <tr><td colSpan={6} className="px-5 py-6 text-center text-ink/40">No hay registros.</td></tr>
+              <tr><td colSpan={8} className="px-5 py-6 text-center text-ink/40">No hay registros.</td></tr>
             )}
             {filtradas.map((v) => (
               <tr key={v.id} className="hover:bg-paper2/50">
                 <td className="px-5 py-3 font-medium text-ink">{v.nombres} {v.apellidos}</td>
                 <td className="px-5 py-3 text-ink/70">{v.telefono}</td>
                 <td className="px-5 py-3 text-ink/70">{v.email || '—'}</td>
+                <td className="px-5 py-3 text-ink/60 text-xs">{[v.barrio, v.direccion].filter(Boolean).join(', ') || '—'}</td>
                 <td className="px-5 py-3">
                   <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
                     v.asisteOtraIglesia === 'Si' ? 'bg-azul/10 text-azul' : 'bg-ink/5 text-ink/50'
