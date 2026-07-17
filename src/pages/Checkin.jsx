@@ -187,7 +187,7 @@ export default function Checkin() {
                 </p>
                 {personaSeleccionada.numeroDocumento && (
                   <p className="text-xs text-gray-400 mb-4">
-                    Doc: {personaSeleccionada.numeroDocumento}
+                    Doc: {ultimos4doc(personaSeleccionada.numeroDocumento)}
                   </p>
                 )}
 
