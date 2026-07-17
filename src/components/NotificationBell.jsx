@@ -16,6 +16,7 @@ export default function NotificationBell() {
   const [abierto, setAbierto] = useState(false);
   const [pushActivo, setPushActivo] = useState(true);
   const [registrando, setRegistrando] = useState(false);
+  const [posicion, setPosicion] = useState({ top: 0, right: 16 });
   const ref = useRef(null);
 
   async function cargar() {
@@ -50,6 +51,14 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [abierto]);
 
+  function toggle() {
+    if (!abierto && ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      setPosicion({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+    }
+    setAbierto(!abierto);
+  }
+
   async function activarPush() {
     setRegistrando(true);
     const result = await registrarPush();
@@ -76,7 +85,7 @@ export default function NotificationBell() {
   return (
     <div className="relative" ref={ref}>
       <button
-        onClick={() => setAbierto(!abierto)}
+        onClick={toggle}
         className="relative w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
       >
         <svg className="w-5 h-5 text-paper" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -97,7 +106,8 @@ export default function NotificationBell() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-2xl border border-line z-50 overflow-hidden"
+            style={{ position: 'fixed', top: posicion.top, right: posicion.right, zIndex: 9999 }}
+            className="w-80 bg-white rounded-xl shadow-2xl border border-line overflow-hidden"
           >
             {!pushActivo && (
               <div className="px-4 py-3 bg-amber-50 border-b border-amber-200">
