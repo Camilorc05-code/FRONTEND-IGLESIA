@@ -23,6 +23,7 @@ import AuditLog from './pages/admin/AuditLog';
 import Donaciones from './pages/Donaciones';
 import VisitanteForm from './pages/VisitanteForm';
 import Redes from './pages/Redes';
+import Checkin from './pages/Checkin';
 
 export default function App() {
   return (
@@ -45,6 +46,9 @@ export default function App() {
 
           {/* Login del panel */}
           <Route path="/admin/login" element={<Login />} />
+
+          {/* Check-in (fuera del shell público) */}
+          <Route path="/checkin" element={<Checkin />} />
 
           {/* Panel administrativo protegido */}
           <Route
