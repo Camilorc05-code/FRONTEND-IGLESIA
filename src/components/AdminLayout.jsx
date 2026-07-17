@@ -14,6 +14,7 @@ const allItems = [
   { to: '/admin/servicios', label: 'Horarios', roles: ['ADMIN'] },
   { to: '/admin/eventos', label: 'Eventos', roles: ['ADMIN'] },
   { to: '/admin/usuarios', label: 'Usuarios', roles: ['ADMIN'] },
+  { to: '/admin/asistencia', label: 'Asistencia', roles: ['ADMIN', 'PASTOR'] },
   { to: '/admin/historial', label: 'Historial', roles: ['ADMIN'] },
 ];
 

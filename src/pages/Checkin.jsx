@@ -1,191 +1,236 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { api } from '../api/client';
+
+const API = import.meta.env.VITE_API_URL;
 
 export default function Checkin() {
-  const [telefono, setTelefono] = useState('');
-  const [paso, setPaso] = useState('telefono'); // telefono | confirmar | listo | error
-  const [persona, setPersona] = useState(null);
+  const navigate = useNavigate();
+  const [paso, setPaso] = useState('buscar');
+  const [busqueda, setBusqueda] = useState('');
+  const [resultados, setResultados] = useState([]);
+  const [personaSeleccionada, setPersonaSeleccionada] = useState(null);
   const [mensaje, setMensaje] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState('');
+  const [duplicado, setDuplicado] = useState(false);
 
-  async function buscarPersona() {
-    if (!telefono.trim()) return;
+  const buscar = async () => {
+    if (busqueda.trim().length < 2) return;
     setCargando(true);
-    setMensaje('');
+    setError('');
+    setResultados([]);
+
     try {
-      const { data } = await api.post('/checkin/buscar', { telefono: telefono.trim() });
-      setPersona(data);
-      setPaso('confirmar');
-    } catch (err) {
-      setMensaje(err.response?.data?.error || 'Error al buscar.');
-      setPaso('error');
-    } finally {
-      setCargando(false);
+      const res = await fetch(`${API}/api/checkin/buscar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre: busqueda }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error);
+        setCargando(false);
+        return;
+      }
+      setResultados(data);
+      if (data.length === 1) {
+        setPaso('confirmar');
+        setPersonaSeleccionada(data[0]);
+      } else {
+        setPaso('seleccionar');
+      }
+    } catch {
+      setError('Error de conexión.');
     }
-  }
+    setCargando(false);
+  };
 
-  async function confirmarAsistencia() {
+  const registrar = async (persona) => {
     setCargando(true);
+    setError('');
     try {
-      const { data } = await api.post('/checkin/registrar', { personaId: persona.id });
+      const res = await fetch(`${API}/api/checkin/registrar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ personaId: persona.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error);
+        setCargando(false);
+        return;
+      }
+      setDuplicado(data.duplicate || false);
       setMensaje(data.mensaje);
-      setPaso('listo');
-    } catch (err) {
-      setMensaje(err.response?.data?.error || 'Error al registrar.');
-      setPaso('error');
-    } finally {
-      setCargando(false);
+      setPersonaSeleccionada(data.persona || persona);
+      setPaso('exito');
+    } catch {
+      setError('Error de conexión.');
     }
-  }
+    setCargando(false);
+  };
 
-  function reiniciar() {
-    setTelefono('');
-    setPersona(null);
+  const seleccionarPersona = (p) => {
+    setPersonaSeleccionada(p);
+    setPaso('confirmar');
+  };
+
+  const reiniciar = () => {
+    setPaso('buscar');
+    setBusqueda('');
+    setResultados([]);
+    setPersonaSeleccionada(null);
     setMensaje('');
-    setPaso('telefono');
-  }
+    setError('');
+    setDuplicado(false);
+  };
+
+  const ultimos4doc = (num) => {
+    if (!num || num.length < 4) return num || '';
+    return '***' + num.slice(-4);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-azul to-ink flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-white/10 flex items-center justify-center">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          </div>
-          <h1 className="text-white font-display text-2xl">Check-in</h1>
-          <p className="text-white/60 text-sm mt-1">Registra tu asistencia</p>
+    <div className="min-h-screen bg-gradient-to-b from-[#0A2A57] to-[#1B3A6B] flex flex-col items-center justify-center px-4 py-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md"
+      >
+        <div className="text-center mb-6">
+          <h1 className="text-white text-3xl font-bold">Control de Asistencia</h1>
+          <p className="text-blue-200 mt-1">Iglesia Misión Panamericana</p>
         </div>
 
-        {/* Card */}
-        <div className="bg-white rounded-2xl shadow-2xl p-6">
+        <div className="bg-white rounded-2xl shadow-xl p-6">
           <AnimatePresence mode="wait">
-            {/* Paso 1: Teléfono */}
-            {paso === 'telefono' && (
-              <motion.div
-                key="telefono"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-              >
-                <label className="text-sm font-medium text-ink/70 block mb-2">Tu número de celular</label>
+            {/* PASO: BUSCAR POR NOMBRE */}
+            {paso === 'buscar' && (
+              <motion.div key="buscar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Escribe tu nombre completo
+                </label>
                 <input
-                  type="tel"
-                  className="input text-center text-xl tracking-widest"
-                  placeholder="3XX XXX XXXX"
-                  value={telefono}
-                  onChange={(e) => setTelefono(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && buscarPersona()}
+                  type="text"
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && buscar()}
+                  placeholder="Ej: María López"
                   autoFocus
-                  inputMode="numeric"
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-lg focus:border-[#D4A017] focus:outline-none transition-colors"
                 />
+                {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
                 <button
-                  onClick={buscarPersona}
-                  disabled={!telefono.trim() || cargando}
-                  className="btn-gold shadow-gold w-full mt-4 text-base py-3"
+                  onClick={buscar}
+                  disabled={cargando || busqueda.trim().length < 2}
+                  className="w-full mt-4 bg-[#0A2A57] text-white font-semibold py-3 rounded-xl hover:bg-[#1B3A6B] disabled:opacity-40 transition-colors"
                 >
                   {cargando ? 'Buscando...' : 'Buscar'}
                 </button>
+
+                <div className="mt-6 border-t pt-4 text-center">
+                  <p className="text-gray-500 text-sm">¿No estás registrado?</p>
+                  <button
+                    onClick={() => navigate('/registrarse')}
+                    className="mt-2 w-full border-2 border-[#D4A017] text-[#D4A017] font-semibold py-3 rounded-xl hover:bg-[#D4A017] hover:text-white transition-colors"
+                  >
+                    Registrarse aquí
+                  </button>
+                </div>
               </motion.div>
             )}
 
-            {/* Paso 2: Confirmar */}
-            {paso === 'confirmar' && persona && (
-              <motion.div
-                key="confirmar"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="text-center"
-              >
-                <div className="w-16 h-16 rounded-full bg-azul/10 flex items-center justify-center mx-auto mb-4">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3E52C3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
-                  </svg>
-                </div>
-                <p className="text-sm text-ink/50 mb-1">¿Es tu nombre?</p>
-                <p className="font-display text-xl text-ink font-semibold">
-                  {persona.nombres} {persona.apellidos}
+            {/* PASO: SELECCIONAR ENTRE VARIOS */}
+            {paso === 'seleccionar' && (
+              <motion.div key="seleccionar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <p className="text-gray-700 font-semibold mb-3">
+                  Encontramos {resultados.length} personas. Selecciona la correcta:
                 </p>
-                {persona.ministerio && (
-                  <p className="text-xs text-ink/40 mt-1">{persona.ministerio}</p>
-                )}
-                <button
-                  onClick={confirmarAsistencia}
-                  disabled={cargando}
-                  className="btn-gold shadow-gold w-full mt-6 text-base py-3"
-                >
-                  {cargando ? 'Registrando...' : '✅ Sí, registrar asistencia'}
-                </button>
-                <button
-                  onClick={reiniciar}
-                  className="text-sm text-ink/40 mt-3 hover:text-ink/60"
-                >
-                  No soy yo — Cambiar número
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {resultados.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => seleccionarPersona(p)}
+                      className="w-full text-left border-2 border-gray-200 rounded-xl px-4 py-3 hover:border-[#D4A017] hover:bg-amber-50 transition-all"
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-gray-800">{p.apellidos} {p.nombres}</span>
+                        {p.numeroDocumento && (
+                          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full">
+                            {ultimos4doc(p.numeroDocumento)}
+                          </span>
+                        )}
+                      </div>
+                      {(p.rolIglesia || p.ministerio) && (
+                        <p className="text-xs text-gray-400 mt-1">
+                          {[p.rolIglesia, p.ministerio].filter(Boolean).join(' • ')}
+                        </p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <button onClick={() => setPaso('buscar')} className="w-full mt-4 text-gray-500 hover:text-gray-700 text-sm">
+                  ← Volver a buscar
                 </button>
               </motion.div>
             )}
 
-            {/* Paso 3: Listo */}
-            {paso === 'listo' && (
-              <motion.div
-                key="listo"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="text-center"
-              >
-                <div className="w-16 h-16 rounded-full bg-verde/10 flex items-center justify-center mx-auto mb-4">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6L9 17l-5-5"/>
-                  </svg>
-                </div>
-                <p className="font-display text-lg text-ink font-semibold mb-2">¡Listo!</p>
-                <p className="text-sm text-ink/60">{mensaje}</p>
+            {/* PASO: CONFIRMAR UNA PERSONA */}
+            {paso === 'confirmar' && personaSeleccionada && (
+              <motion.div key="confirmar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <p className="text-gray-500 text-sm mb-1">¿Es tu nombre?</p>
+                <p className="text-2xl font-bold text-gray-800 mb-1">
+                  {personaSeleccionada.apellidos} {personaSeleccionada.nombres}
+                </p>
+                {personaSeleccionada.numeroDocumento && (
+                  <p className="text-xs text-gray-400 mb-4">
+                    Doc: {personaSeleccionada.numeroDocumento}
+                  </p>
+                )}
+
+                <button
+                  onClick={() => registrar(personaSeleccionada)}
+                  disabled={cargando}
+                  className="w-full bg-[#0A2A57] text-white font-semibold py-3 rounded-xl hover:bg-[#1B3A6B] disabled:opacity-40 transition-colors"
+                >
+                  {cargando ? 'Registrando...' : 'Sí, registrar asistencia'}
+                </button>
+                <button
+                  onClick={() => setPaso('buscar')}
+                  className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm py-2"
+                >
+                  ← No soy yo, volver
+                </button>
+              </motion.div>
+            )}
+
+            {/* PASO: ÉXITO */}
+            {paso === 'exito' && (
+              <motion.div key="exito" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-4">
+                <div className="text-5xl mb-3">{duplicado ? '⚠️' : '✅'}</div>
+                <p className="text-lg font-semibold text-gray-800 mb-4">{mensaje}</p>
                 <button
                   onClick={reiniciar}
-                  className="btn-outline w-full mt-6"
+                  className="w-full bg-[#0A2A57] text-white font-semibold py-3 rounded-xl hover:bg-[#1B3A6B] transition-colors"
                 >
                   Registrar otra persona
                 </button>
-              </motion.div>
-            )}
-
-            {/* Error */}
-            {paso === 'error' && (
-              <motion.div
-                key="error"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="text-center"
-              >
-                <div className="w-16 h-16 rounded-full bg-rojo/10 flex items-center justify-center mx-auto mb-4">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#E1011D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="15" y1="9" x2="9" y2="15"/>
-                    <line x1="9" y1="9" x2="15" y2="15"/>
-                  </svg>
-                </div>
-                <p className="text-sm text-ink/60 mb-4">{mensaje}</p>
                 <button
-                  onClick={reiniciar}
-                  className="btn-gold shadow-gold w-full"
+                  onClick={() => navigate('/')}
+                  className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm py-2"
                 >
-                  Intentar de nuevo
+                  Volver al inicio
                 </button>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        <p className="text-center text-white/30 text-xs mt-6">
-          Misión Panamericana — Centro de Fe y Esperanza
+        <p className="text-blue-300/60 text-xs text-center mt-4">
+          Misión Panamericana · Paz de Ariporo
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }
