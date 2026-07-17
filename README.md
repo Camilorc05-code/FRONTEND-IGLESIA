@@ -1,65 +1,60 @@
-# Frontend — Iglesia Misión Panamericana Centro de Fe y Esperanza
+# Frontend — Misión Panamericana
 
-React + Vite + Tailwind. Sitio público + panel administrativo interno.
+Sitio web de la iglesia. React, Vite y Tailwind. Incluye página pública y panel de administración.
 
-## Qué incluye
+## Páginas públicas
 
-**Sitio público** (`/`, `/horarios`, `/eventos`, `/eventos/:id`, `/citas`):
-- Inicio con próximos servicios y eventos.
-- Horarios de servicio agrupados por día.
-- Listado de eventos (próximos / realizados) con detalle.
-- Formulario público para agendar cita con un pastor (sin necesidad de cuenta).
+- **Inicio** (`/`): bienvenida, próximo servicio, ministerios, galería, redes sociales.
+- **Horarios** (`/horarios`): servicios agrupados por día.
+- **Eventos** (`/eventos`): listado con filtro por categoría, galería de fotos.
+- **Detalle evento** (`/eventos/:id`): información completa + galería.
+- **Citas** (`/citas`): formulario para agendar cita con un pastor.
+- **Redes** (`/redes`): reels de Facebook e Instagram.
 
-**Panel interno** (`/admin/login`, `/admin/*`, protegido con JWT):
-- Resumen con estadísticas.
-- Gestión de personas (base de datos de feligreses): buscar, crear, editar, eliminar.
-- Gestión de citas: confirmar, cancelar, marcar completadas.
-- Gestión de horarios de servicio.
-- Gestión de eventos.
+## Panel administrativo
 
-## 1. Configurar y correr localmente
+Ruta `/admin/login`. Protegido con JWT.
+
+- Dashboard con estadísticas
+- Personas: crear, editar, eliminar feligreses
+- Citas: confirmar, cancelar, completar
+- Servicios: gestionar horarios
+- Eventos: crear, editar, galería de fotos
+- Usuarios: crear, activar/desactivar, eliminar (solo ADMIN)
+
+Los roles PASTOR y LIDER solo acceden a Citas y Personas.
+
+## Correr local
 
 ```bash
-cd frontend
 cp .env.example .env
-# Edita .env y pon la URL de tu backend (local o ya desplegado en Render)
+# Ponér la URL del backend en VITE_API_URL
 
 npm install
-npm run dev   # http://localhost:5173
+npm run dev
 ```
 
-Asegúrate de que el backend esté corriendo y que `FRONTEND_URL` en el `.env` del backend
-incluya `http://localhost:5173` (o `*` en desarrollo).
+El backend tiene que estar corriendo. En el `.env` del backend, FRONTEND_URL debe incluir `http://localhost:5173`.
 
-## 2. Desplegar gratis en Vercel
+## Desplegar en Vercel
 
-1. Sube este frontend a un repositorio en GitHub (puede ser el mismo repo del backend, en una carpeta `frontend/`, o uno aparte).
-2. Entra a https://vercel.com (login con GitHub) → **Add New → Project** → importa el repo.
-3. Si el frontend está en una subcarpeta, en "Root Directory" selecciona `frontend`.
-4. Framework preset: **Vite** (Vercel lo detecta solo).
-5. En **Environment Variables**, agrega:
-   - `VITE_API_URL` → la URL de tu backend en Render (ej: `https://iglesia-backend.onrender.com`)
-6. Deploy. Vercel te da una URL gratis tipo `https://iglesia-mision.vercel.app`.
+1. Subir a GitHub.
+2. En https://vercel.com → Add New → Project → importar el repo.
+3. Si está en subcarpeta, configurar Root Directory.
+4. Framework: Vite (Vercel lo detecta).
+5. Environment Variable: `VITE_API_URL` con la URL del backend en Render.
+6. Deploy.
 
-## 3. Último paso: conectar CORS
+Después de desplegar, actualizar FRONTEND_URL en el backend con la URL de Vercel para que CORS funcione.
 
-Una vez tengas la URL final de Vercel, actualiza la variable `FRONTEND_URL` en el
-backend (Render) con esa URL exacta, para que el navegador no bloquee las peticiones.
+## Primer login
 
-## Primer inicio de sesión
+- Ruta: `/admin/login`
+- Email: `admin@misionpanamericana.com`
+- Password: `admin`
 
-Usa el usuario creado por el seed del backend:
-- `/admin/login`
-- Email: `admin@iglesia.com`
-- Password: `CambiaEstaClave123`
+Desde ahí se pueden crear más usuarios desde el panel.
 
-Desde ahí, un ADMIN puede crear más usuarios (pastores/líderes) llamando a
-`POST /api/auth/usuarios` (aún no hay pantalla para esto en el panel — se puede
-agregar como siguiente paso, o hacerlo directo con una herramienta como Postman/Insomnia
-mientras tanto).
+## Dominio propio
 
-## Dominio propio (opcional, más adelante)
-
-Cuando quieras usar un dominio propio en vez de `.vercel.app`, en Vercel:
-**Project → Settings → Domains** → agrega tu dominio y sigue las instrucciones de DNS
-que te da (normalmente un registro CNAME). El certificado SSL se genera automático y gratis.
+En Vercel: Project → Settings → Domains → agregar el dominio y configurar el registro CNAME que te dan. El SSL se genera solo.
