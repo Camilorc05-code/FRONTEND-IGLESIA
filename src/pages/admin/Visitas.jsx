@@ -32,9 +32,15 @@ export default function Visitas() {
     cargar();
   }, []);
 
-  async function eliminar(id) {
-    if (!confirm('¿Seguro quieres eliminar esta visita? También se eliminará la persona asociada si existe.')) return;
+  async function eliminarSoloVisita(id) {
+    if (!confirm('¿Seguro quieres eliminar solo de Nuevos?')) return;
     await api.delete(`/visitas/${id}`);
+    cargar();
+  }
+
+  async function eliminarAmbos(id) {
+    if (!confirm('¿Seguro quieres eliminar de Nuevos y de Miembros?')) return;
+    await api.delete(`/visitas/${id}?eliminartambien=persona`);
     cargar();
   }
 
@@ -124,9 +130,15 @@ export default function Visitas() {
                 </td>
                 <td className="px-5 py-3 text-ink/50 text-xs whitespace-nowrap">{formatFecha(v.createdAt)}</td>
                 <td className="px-5 py-3 text-right">
-                  <button onClick={() => eliminar(v.id)} className="text-rojo/70 font-medium hover:text-rojo text-xs">
-                    Eliminar
-                  </button>
+                  <div className="flex gap-1 justify-end">
+                    <button onClick={() => eliminarSoloVisita(v.id)} className="text-rojo/70 font-medium hover:text-rojo text-xs" title="Eliminar solo de Nuevos">
+                      Solo nuevos
+                    </button>
+                    <span className="text-ink/20">|</span>
+                    <button onClick={() => eliminarAmbos(v.id)} className="text-rojo font-medium hover:text-rojo text-xs" title="Eliminar de Nuevos y de Miembros">
+                      Nuevos y Miembros
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
