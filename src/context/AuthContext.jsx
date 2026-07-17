@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from 'react';
 import { api } from '../api/client';
+import { registrarPush, desuscribirPush } from '../lib/push';
 
 const AuthContext = createContext(null);
 
@@ -14,10 +15,12 @@ export function AuthProvider({ children }) {
     localStorage.setItem('token', data.token);
     localStorage.setItem('usuario', JSON.stringify(data.usuario));
     setUsuario(data.usuario);
+    registrarPush();
     return data.usuario;
   }
 
   function logout() {
+    desuscribirPush();
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     setUsuario(null);

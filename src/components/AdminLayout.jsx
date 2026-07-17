@@ -3,6 +3,7 @@ import { NavLink, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import logoMision from '../assets/logo-mision-transparente.png';
+import NotificationBell from './NotificationBell';
 
 const allItems = [
   { to: '/admin', label: 'Resumen', end: true },
@@ -52,6 +53,7 @@ export default function AdminLayout() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <NotificationBell />
           <button
             onClick={logout}
             className="text-paper/50 hover:text-paper text-xs px-2 py-1"
@@ -124,6 +126,7 @@ export default function AdminLayout() {
                 {usuario?.rol}
               </span>
             </div>
+            <NotificationBell />
           </div>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
