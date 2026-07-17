@@ -220,7 +220,8 @@ export default function Personas() {
           <thead className="bg-paper2 text-ink/60 text-left">
             <tr>
               <th className="px-3 py-3 font-medium w-12">#</th>
-              <th className="px-5 py-3 font-medium">Nombre</th>
+              <th className="px-5 py-3 font-medium">Apellidos</th>
+              <th className="px-5 py-3 font-medium">Nombres</th>
               <th className="px-5 py-3 font-medium">Documento</th>
               <th className="px-5 py-3 font-medium">Edad</th>
               <th className="px-5 py-3 font-medium">Grupo</th>
@@ -233,10 +234,10 @@ export default function Personas() {
           </thead>
           <tbody className="divide-y divide-line">
             {cargando && (
-              <tr><td colSpan={10} className="px-5 py-6 text-center text-ink/40">Cargando…</td></tr>
+              <tr><td colSpan={11} className="px-5 py-6 text-center text-ink/40">Cargando…</td></tr>
             )}
             {!cargando && filtradas.length === 0 && (
-              <tr><td colSpan={10} className="px-5 py-6 text-center text-ink/40">No hay miembros registrados.</td></tr>
+              <tr><td colSpan={11} className="px-5 py-6 text-center text-ink/40">No hay miembros registrados.</td></tr>
             )}
             {filtradas.map((p, i) => {
               const edad = calcularEdad(p.fechaNacimiento);
@@ -244,7 +245,8 @@ export default function Personas() {
               return (
                 <tr key={p.id} className="hover:bg-paper2/50">
                   <td className="px-3 py-3 text-ink/40 text-xs text-center">{i + 1}</td>
-                  <td className="px-5 py-3 font-medium text-ink">{p.apellidos} {p.nombres}</td>
+                  <td className="px-5 py-3 font-medium text-ink">{p.apellidos}</td>
+                  <td className="px-5 py-3 font-medium text-ink">{p.nombres}</td>
                   <td className="px-5 py-3 text-ink/70">{p.tipoDocumento ? `${p.tipoDocumento} ` : ''}{p.numeroDocumento || '—'}</td>
                   <td className="px-5 py-3 text-ink/70">{edad !== null ? `${edad} años` : '—'}</td>
                   <td className="px-5 py-3">
