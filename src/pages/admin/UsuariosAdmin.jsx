@@ -62,7 +62,7 @@ export default function UsuariosAdmin() {
   }
 
   async function eliminar(usuario) {
-    if (!window.confirm(`¿Eliminar el usuario "${usuario.nombre}"? Esta acción no se puede deshacer.`)) return;
+    if (!window.confirm(`¿Seguro quieres eliminar el usuario "${usuario.nombre}"? Esta acción no se puede deshacer.`)) return;
     try {
       await api.delete(`/auth/usuarios/${usuario.id}`);
       cargar();

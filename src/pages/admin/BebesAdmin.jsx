@@ -74,7 +74,7 @@ export default function BebesAdmin() {
   }
 
   async function eliminar(b) {
-    if (!window.confirm(`¿Eliminar la presentación de "${b.nombreBebe}"?`)) return;
+    if (!window.confirm(`¿Seguro quieres eliminar la presentación de "${b.nombreBebe}"?`)) return;
     try {
       await api.delete(`/presentaciones/${b.id}`);
       cargar();

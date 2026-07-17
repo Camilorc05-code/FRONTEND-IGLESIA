@@ -121,7 +121,7 @@ export default function Personas() {
   }
 
   async function eliminar(id) {
-    if (!confirm('¿Eliminar este miembro de la base de datos?')) return;
+    if (!confirm('¿Seguro quieres eliminar esta persona de la base de datos?')) return;
     await api.delete(`/personas/${id}`);
     cargar();
   }

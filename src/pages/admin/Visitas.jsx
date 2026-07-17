@@ -33,7 +33,7 @@ export default function Visitas() {
   }, []);
 
   async function eliminar(id) {
-    if (!confirm('¿Eliminar este registro de visita?')) return;
+    if (!confirm('¿Seguro quieres eliminar esta visita? También se eliminará la persona asociada si existe.')) return;
     await api.delete(`/visitas/${id}`);
     cargar();
   }

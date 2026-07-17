@@ -59,7 +59,7 @@ export default function EventosAdmin() {
   }
 
   async function eliminar(id) {
-    if (!confirm('¿Eliminar este evento?')) return;
+    if (!confirm('¿Seguro quieres eliminar este evento?')) return;
     await api.delete(`/eventos/${id}`);
     cargar();
   }

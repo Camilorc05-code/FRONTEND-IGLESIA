@@ -51,7 +51,7 @@ export default function Citas() {
   }
 
   async function eliminar(id) {
-    if (!confirm('¿Eliminar esta cita definitivamente?')) return;
+    if (!confirm('¿Seguro quieres eliminar esta cita?')) return;
     await api.delete(`/citas/${id}`);
     cargar();
   }

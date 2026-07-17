@@ -53,7 +53,7 @@ export default function ServiciosAdmin() {
   }
 
   async function eliminar(id) {
-    if (!confirm('¿Eliminar este horario?')) return;
+    if (!confirm('¿Seguro quieres eliminar este horario?')) return;
     await api.delete(`/servicios/${id}`);
     cargar();
   }
