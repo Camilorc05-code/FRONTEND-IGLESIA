@@ -150,9 +150,12 @@ export default function Inicio() {
                       <Link to="/citas" className="btn-outline">Agendar una cita</Link>
                     </Magnetic>
                     <Magnetic strength={0.25}>
-                      <a href="#ubicacion" className="btn-outline">
+                      <a href="#ubicacion" className="btn-gold shadow-gold text-base px-8 py-3.5 gap-2 animate-pulse">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                          <circle cx="12" cy="10" r="3"/>
+                        </svg>
                         Cómo llegar
-                        <span aria-hidden="true">↓</span>
                       </a>
                     </Magnetic>
                   </motion.div>
@@ -599,7 +602,7 @@ export default function Inicio() {
                   href="https://www.google.com/maps/dir/?api=1&destination=Calle+12+%2310-19,+Paz+de+Ariporo,+Casanare,+Colombia"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-gold shadow-gold inline-flex items-center gap-2"
+                  className="btn-gold shadow-gold inline-flex items-center gap-2 text-base px-8 py-3.5"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
