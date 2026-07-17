@@ -151,9 +151,27 @@ export default function Personas() {
           <h1 className="font-display text-2xl text-ink">Miembros</h1>
           <p className="text-ink/50 text-sm">{total} registrados</p>
         </div>
-        <button onClick={abrirNuevo} className="btn-gold !py-2.5">
-          + Agregar miembro
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => {
+            const token = localStorage.getItem('token');
+            const API_URL = import.meta.env.VITE_API_URL || 'https://backend-iglesia-3op0.onrender.com';
+            fetch(`${API_URL}/api/excel/personas`, { headers: { Authorization: `Bearer ${token}` } })
+              .then(r => r.blob())
+              .then(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'miembros.xlsx';
+                a.click();
+                URL.revokeObjectURL(url);
+              });
+          }} className="btn-outline !py-2.5 !px-4 text-sm">
+            Descargar Excel
+          </button>
+          <button onClick={abrirNuevo} className="btn-gold !py-2.5">
+            + Agregar miembro
+          </button>
+        </div>
       </div>
 
       <input

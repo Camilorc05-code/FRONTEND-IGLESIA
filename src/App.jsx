@@ -18,6 +18,7 @@ import ServiciosAdmin from './pages/admin/ServiciosAdmin';
 import EventosAdmin from './pages/admin/EventosAdmin';
 import Visitas from './pages/admin/Visitas';
 import UsuariosAdmin from './pages/admin/UsuariosAdmin';
+import BebesAdmin from './pages/admin/BebesAdmin';
 import Donaciones from './pages/Donaciones';
 import VisitanteForm from './pages/VisitanteForm';
 import Redes from './pages/Redes';
@@ -60,6 +61,7 @@ export default function App() {
             <Route path="servicios" element={<ServiciosAdmin />} />
             <Route path="eventos" element={<EventosAdmin />} />
             <Route path="usuarios" element={<UsuariosAdmin />} />
+            <Route path="bebes" element={<BebesAdmin />} />
           </Route>
 
           <Route path="*" element={<Inicio />} />

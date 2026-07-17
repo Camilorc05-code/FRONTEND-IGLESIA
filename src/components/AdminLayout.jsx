@@ -9,6 +9,7 @@ const allItems = [
   { to: '/admin/personas', label: 'Miembros' },
   { to: '/admin/citas', label: 'Citas' },
   { to: '/admin/visitas', label: 'Nuevos' },
+  { to: '/admin/bebes', label: 'Bebés' },
   { to: '/admin/servicios', label: 'Horarios', roles: ['ADMIN'] },
   { to: '/admin/eventos', label: 'Eventos', roles: ['ADMIN'] },
   { to: '/admin/usuarios', label: 'Usuarios', roles: ['ADMIN'] },
