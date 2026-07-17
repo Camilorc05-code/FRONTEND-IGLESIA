@@ -324,7 +324,7 @@ export default function Personas() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="label">Tipo de documento</label>
+                  <label className="label">Tipo doc</label>
                   <select className="input" value={form.tipoDocumento || ''}
                     onChange={(e) => setForm({ ...form, tipoDocumento: e.target.value })}>
                     <option value="">Seleccionar</option>
