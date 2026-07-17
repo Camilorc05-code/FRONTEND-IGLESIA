@@ -1,7 +1,7 @@
 // Service Worker — Misión Panamericana
 // Push notifications + Cache offline (PWA)
 
-const CACHE_NAME = 'mision-panamericana-v1';
+const CACHE_NAME = 'mision-panamericana-v2';
 const APP_SHELL = [
   '/',
   '/horarios',
@@ -10,8 +10,8 @@ const APP_SHELL = [
   '/donaciones',
   '/registrarse',
   '/redes',
-  '/logo-192.png',
-  '/logo-512.png',
+  '/icon-192.png',
+  '/icon-512.png',
   '/manifest.json',
 ];
 
@@ -83,12 +83,14 @@ self.addEventListener('push', (e) => {
 
   const options = {
     body: data.mensaje,
-    icon: '/logo-192.png',
-    badge: '/logo-192.png',
-    vibrate: [100, 50, 100],
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    vibrate: [200, 100, 200, 100, 200],
     data: { url: data.url || '/admin' },
+    tag: 'iglesia-' + Date.now(),
+    requireInteraction: true,
     actions: [
-      { action: 'abrir', title: 'Ver', icon: '/logo-192.png' },
+      { action: 'abrir', title: 'Ver' },
     ],
   };
 
