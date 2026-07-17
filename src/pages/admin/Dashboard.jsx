@@ -160,9 +160,10 @@ function EstadoCita({ label, valor, color }) {
 function GraficaBarras({ datos }) {
   const maximo = Math.max(...datos.map((d) => Math.max(d.miembros, d.visitas, d.citas)), 1);
   const alto = 200;
-  const padding = 40;
+  const leftPad = 8;
+  const rightPad = 12;
   const anchoTotal = 600;
-  const espacioGrupo = (anchoTotal - padding * 2) / datos.length;
+  const espacioGrupo = (anchoTotal - leftPad - rightPad) / datos.length;
   const barW = Math.min(espacioGrupo * 0.22, 12);
   const gaps = 3;
 
@@ -175,15 +176,15 @@ function GraficaBarras({ datos }) {
           const val = Math.round(maximo * pct);
           return (
             <g key={i}>
-              <line x1={padding} y1={y} x2={anchoTotal - padding} y2={y} stroke="#e2e8f0" strokeWidth="0.5" strokeDasharray={i === 0 ? '' : '4 4'} />
-              <text x={padding - 6} y={y + 3} textAnchor="end" fontSize="8" fill="#94a3b8">{val}</text>
+              <line x1={leftPad} y1={y} x2={anchoTotal - rightPad} y2={y} stroke="#e2e8f0" strokeWidth="0.5" strokeDasharray={i === 0 ? '' : '4 4'} />
+              <text x={leftPad - 2} y={y + 3} textAnchor="end" fontSize="8" fill="#94a3b8">{val}</text>
             </g>
           );
         })}
 
         {/* Barras */}
         {datos.map((d, i) => {
-          const x = padding + i * espacioGrupo + espacioGrupo / 2;
+          const x = leftPad + i * espacioGrupo + espacioGrupo / 2;
           const bw = barW;
           const hM = (d.miembros / maximo) * (alto - 20);
           const hV = (d.visitas / maximo) * (alto - 20);
@@ -277,13 +278,14 @@ function GraficaDona({ datos }) {
 function GraficaLineas({ datos }) {
   const maximo = Math.max(...datos.map((d) => Math.max(d.miembros, d.visitas, d.citas)), 1);
   const alto = 160;
-  const pad = 30;
+  const leftPad = 8;
+  const rightPad = 12;
   const ancho = 500;
-  const paso = (ancho - pad * 2) / (datos.length - 1 || 1);
+  const paso = (ancho - leftPad - rightPad) / (datos.length - 1 || 1);
 
   function camino(vals) {
     return vals.map((v, i) => {
-      const x = pad + i * paso;
+      const x = leftPad + i * paso;
       const y = alto - (v / maximo) * (alto - 20);
       return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
     }).join(' ');
@@ -291,11 +293,11 @@ function GraficaLineas({ datos }) {
 
   function area(vals) {
     const line = vals.map((v, i) => {
-      const x = pad + i * paso;
+      const x = leftPad + i * paso;
       const y = alto - (v / maximo) * (alto - 20);
       return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
     }).join(' ');
-    return `${line} L ${pad + (vals.length - 1) * paso} ${alto} L ${pad} ${alto} Z`;
+    return `${line} L ${leftPad + (vals.length - 1) * paso} ${alto} L ${leftPad} ${alto} Z`;
   }
 
   return (
@@ -304,7 +306,7 @@ function GraficaLineas({ datos }) {
         {/* Grid */}
         {[0, 0.5, 1].map((pct, i) => {
           const y = alto - pct * (alto - 20);
-          return <line key={i} x1={pad} y1={y} x2={ancho - pad} y2={y} stroke="#e2e8f0" strokeWidth="0.5" strokeDasharray={i === 0 ? '' : '4 4'} />;
+          return <line key={i} x1={leftPad} y1={y} x2={ancho - rightPad} y2={y} stroke="#e2e8f0" strokeWidth="0.5" strokeDasharray={i === 0 ? '' : '4 4'} />;
         })}
 
         {/* Áreas semitransparentes */}
@@ -319,7 +321,7 @@ function GraficaLineas({ datos }) {
 
         {/* Puntos */}
         {datos.map((d, i) => {
-          const x = pad + i * paso;
+          const x = leftPad + i * paso;
           return (
             <g key={i}>
               <circle cx={x} cy={alto - (d.miembros / maximo) * (alto - 20)} r="3" fill="white" stroke={C.azul} strokeWidth="2" />
@@ -331,7 +333,7 @@ function GraficaLineas({ datos }) {
 
         {/* Labels — solo cada 2 meses para no encimar */}
         {datos.filter((_, i) => i % 2 === 0).map((d, idx) => (
-          <text key={idx} x={pad + (idx * 2) * paso} y={alto + 14} textAnchor="middle" fontSize="8" fill="#94a3b8" fontFamily="Work Sans">{d.label}</text>
+          <text key={idx} x={leftPad + (idx * 2) * paso} y={alto + 14} textAnchor="middle" fontSize="8" fill="#94a3b8" fontFamily="Work Sans">{d.label}</text>
         ))}
       </svg>
     </div>
