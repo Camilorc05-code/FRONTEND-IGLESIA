@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { api } from '../../api/client';
 
 function formatFecha(dateStr) {
@@ -15,6 +16,7 @@ export default function Visitas() {
   const [visitas, setVisitas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [search, setSearch] = useState('');
+  const [eliminando, setEliminando] = useState(null);
 
   async function cargar() {
     setCargando(true);
@@ -32,15 +34,17 @@ export default function Visitas() {
     cargar();
   }, []);
 
-  async function eliminarSoloVisita(id) {
-    if (!confirm('¿Seguro quieres eliminar solo de Nuevos?')) return;
-    await api.delete(`/visitas/${id}`);
+  async function eliminarSoloVisita() {
+    if (!eliminando) return;
+    await api.delete(`/visitas/${eliminando.id}`);
+    setEliminando(null);
     cargar();
   }
 
-  async function eliminarAmbos(id) {
-    if (!confirm('¿Seguro quieres eliminar de Nuevos y de Miembros?')) return;
-    await api.delete(`/visitas/${id}?eliminartambien=persona`);
+  async function eliminarAmbos() {
+    if (!eliminando) return;
+    await api.delete(`/visitas/${eliminando.id}?eliminartambien=persona`);
+    setEliminando(null);
     cargar();
   }
 
@@ -130,15 +134,9 @@ export default function Visitas() {
                 </td>
                 <td className="px-5 py-3 text-ink/50 text-xs whitespace-nowrap">{formatFecha(v.createdAt)}</td>
                 <td className="px-5 py-3 text-right">
-                  <div className="flex gap-1 justify-end">
-                    <button onClick={() => eliminarSoloVisita(v.id)} className="text-rojo/70 font-medium hover:text-rojo text-xs" title="Eliminar solo de Nuevos">
-                      Solo nuevos
-                    </button>
-                    <span className="text-ink/20">|</span>
-                    <button onClick={() => eliminarAmbos(v.id)} className="text-rojo font-medium hover:text-rojo text-xs" title="Eliminar de Nuevos y de Miembros">
-                      Nuevos y Miembros
-                    </button>
-                  </div>
+                  <button onClick={() => setEliminando(v)} className="text-rojo/70 font-medium hover:text-rojo text-xs">
+                    Eliminar
+                  </button>
                 </td>
               </tr>
             ))}
@@ -162,6 +160,53 @@ export default function Visitas() {
           </div>
         </div>
       )}
+
+      <AnimatePresence>
+        {eliminando && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setEliminando(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6"
+            >
+              <h3 className="font-display text-lg text-ink mb-1">Eliminar visita</h3>
+              <p className="text-sm text-ink/60 mb-5">
+                ¿Qué deseas eliminar de <strong>{eliminando.nombres} {eliminando.apellidos}</strong>?
+              </p>
+              <div className="space-y-2">
+                <button
+                  onClick={eliminarSoloVisita}
+                  className="w-full text-left px-4 py-3 rounded-xl border border-line hover:bg-paper2 transition-colors"
+                >
+                  <p className="text-sm font-medium text-ink">Solo de Nuevos</p>
+                  <p className="text-xs text-ink/50">Se mantiene en Miembros si existe</p>
+                </button>
+                <button
+                  onClick={eliminarAmbos}
+                  className="w-full text-left px-4 py-3 rounded-xl border border-rojo/30 hover:bg-rojo/5 transition-colors"
+                >
+                  <p className="text-sm font-medium text-rojo">De Nuevos y de Miembros</p>
+                  <p className="text-xs text-rojo/60">Elimina de ambas listas</p>
+                </button>
+              </div>
+              <button
+                onClick={() => setEliminando(null)}
+                className="w-full mt-3 text-center text-sm text-ink/40 hover:text-ink/60 py-2"
+              >
+                Cancelar
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
