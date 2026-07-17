@@ -160,51 +160,49 @@ function EstadoCita({ label, valor, color }) {
 function GraficaBarras({ datos }) {
   const maximo = Math.max(...datos.map((d) => Math.max(d.miembros, d.visitas, d.citas)), 1);
   const alto = 200;
-  const leftPad = 8;
-  const rightPad = 12;
-  const anchoTotal = 600;
-  const espacioGrupo = (anchoTotal - leftPad - rightPad) / datos.length;
-  const barW = Math.min(espacioGrupo * 0.22, 12);
+  const barW = 10;
   const gaps = 3;
+  const grupoW = barW * 3 + gaps * 2;
+  const totalW = Math.max(datos.length * (grupoW + 14) + 20, 450);
+  const startX = 14;
 
   return (
     <div className="overflow-x-auto -mx-2 px-2">
-      <svg viewBox={`0 0 ${anchoTotal} ${alto + 35}`} className="w-full" style={{ minWidth: 450 }}>
+      <svg viewBox={`0 0 ${totalW} ${alto + 30}`} className="w-full" style={{ minWidth: totalW }}>
         {/* Grid lines */}
         {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => {
           const y = alto - pct * (alto - 20);
           const val = Math.round(maximo * pct);
           return (
             <g key={i}>
-              <line x1={leftPad} y1={y} x2={anchoTotal - rightPad} y2={y} stroke="#e2e8f0" strokeWidth="0.5" strokeDasharray={i === 0 ? '' : '4 4'} />
-              <text x={leftPad - 2} y={y + 3} textAnchor="end" fontSize="8" fill="#94a3b8">{val}</text>
+              <line x1="0" y1={y} x2={totalW} y2={y} stroke="#e2e8f0" strokeWidth="0.5" strokeDasharray={i === 0 ? '' : '4 4'} />
+              <text x="-4" y={y + 3} textAnchor="end" fontSize="8" fill="#94a3b8">{val}</text>
             </g>
           );
         })}
 
         {/* Barras */}
         {datos.map((d, i) => {
-          const x = leftPad + i * espacioGrupo + espacioGrupo / 2;
-          const bw = barW;
+          const cx = startX + i * (grupoW + 14) + grupoW / 2;
           const hM = (d.miembros / maximo) * (alto - 20);
           const hV = (d.visitas / maximo) * (alto - 20);
           const hC = (d.citas / maximo) * (alto - 20);
 
           return (
             <g key={i}>
-              <rect x={x - bw * 1.5 - gaps} y={alto - hM} width={bw} height={hM} fill={C.azul} rx="3" opacity="0.9">
+              <rect x={cx - barW * 1.5 - gaps} y={alto - hM} width={barW} height={hM} fill={C.azul} rx="2" opacity="0.9">
                 <animate attributeName="height" from="0" to={hM} dur="0.6s" fill="freeze" />
                 <animate attributeName="y" from={alto} to={alto - hM} dur="0.6s" fill="freeze" />
               </rect>
-              <rect x={x - bw / 2} y={alto - hV} width={bw} height={hV} fill={C.verde} rx="3" opacity="0.9">
+              <rect x={cx - barW / 2} y={alto - hV} width={barW} height={hV} fill={C.verde} rx="2" opacity="0.9">
                 <animate attributeName="height" from="0" to={hV} dur="0.6s" begin="0.1s" fill="freeze" />
                 <animate attributeName="y" from={alto} to={alto - hV} dur="0.6s" begin="0.1s" fill="freeze" />
               </rect>
-              <rect x={x + bw / 2 + gaps} y={alto - hC} width={bw} height={hC} fill={C.gold} rx="3" opacity="0.9">
+              <rect x={cx + barW / 2 + gaps} y={alto - hC} width={barW} height={hC} fill={C.gold} rx="2" opacity="0.9">
                 <animate attributeName="height" from="0" to={hC} dur="0.6s" begin="0.2s" fill="freeze" />
                 <animate attributeName="y" from={alto} to={alto - hC} dur="0.6s" begin="0.2s" fill="freeze" />
               </rect>
-              <text x={x} y={alto + 16} textAnchor="middle" fontSize="8" fill="#94a3b8" fontFamily="Work Sans">{d.label}</text>
+              <text x={cx} y={alto + 14} textAnchor="middle" fontSize="8" fill="#94a3b8" fontFamily="Work Sans">{d.label}</text>
             </g>
           );
         })}
@@ -278,62 +276,59 @@ function GraficaDona({ datos }) {
 function GraficaLineas({ datos }) {
   const maximo = Math.max(...datos.map((d) => Math.max(d.miembros, d.visitas, d.citas)), 1);
   const alto = 160;
-  const leftPad = 8;
-  const rightPad = 12;
-  const ancho = 500;
-  const paso = (ancho - leftPad - rightPad) / (datos.length - 1 || 1);
+  const padL = 20;
+  const padR = 10;
+  const w = 500;
+  const usable = w - padL - padR;
+  const paso = datos.length > 1 ? usable / (datos.length - 1) : usable;
 
-  function camino(vals) {
+  function pts(vals) {
     return vals.map((v, i) => {
-      const x = leftPad + i * paso;
+      const x = padL + i * paso;
       const y = alto - (v / maximo) * (alto - 20);
-      return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+      return `${i === 0 ? 'M' : 'L'}${x},${y}`;
     }).join(' ');
   }
 
-  function area(vals) {
-    const line = vals.map((v, i) => {
-      const x = leftPad + i * paso;
-      const y = alto - (v / maximo) * (alto - 20);
-      return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
-    }).join(' ');
-    return `${line} L ${leftPad + (vals.length - 1) * paso} ${alto} L ${leftPad} ${alto} Z`;
+  function fill(vals) {
+    const p = pts(vals);
+    const lastX = padL + (vals.length - 1) * paso;
+    return `${p}L${lastX},${alto}L${padL},${alto}Z`;
   }
+
+  const series = [
+    { key: 'miembros', color: C.azul },
+    { key: 'visitas', color: C.verde },
+    { key: 'citas', color: C.gold },
+  ];
 
   return (
     <div className="overflow-x-auto -mx-2 px-2">
-      <svg viewBox={`0 0 ${ancho} ${alto + 20}`} className="w-full" style={{ minWidth: 350 }}>
+      <svg viewBox={`0 0 ${w} ${alto + 20}`} className="w-full" style={{ minWidth: 350 }}>
         {/* Grid */}
-        {[0, 0.5, 1].map((pct, i) => {
+        {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => {
           const y = alto - pct * (alto - 20);
-          return <line key={i} x1={leftPad} y1={y} x2={ancho - rightPad} y2={y} stroke="#e2e8f0" strokeWidth="0.5" strokeDasharray={i === 0 ? '' : '4 4'} />;
+          return <line key={i} x1={padL} y1={y} x2={w - padR} y2={y} stroke="#e2e8f0" strokeWidth="0.5" strokeDasharray={i === 0 ? '' : '4 4'} />;
         })}
 
-        {/* Áreas semitransparentes */}
-        <path d={area(datos.map((d) => d.miembros))} fill={C.azul} opacity="0.08" />
-        <path d={area(datos.map((d) => d.visitas))} fill={C.verde} opacity="0.08" />
-        <path d={area(datos.map((d) => d.citas))} fill={C.gold} opacity="0.08" />
-
-        {/* Líneas */}
-        <path d={camino(datos.map((d) => d.miembros))} fill="none" stroke={C.azul} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d={camino(datos.map((d) => d.visitas))} fill="none" stroke={C.verde} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d={camino(datos.map((d) => d.citas))} fill="none" stroke={C.gold} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {/* Áreas + Líneas */}
+        {series.map(({ key, color }) => (
+          <g key={key}>
+            <path d={fill(datos.map((d) => d[key]))} fill={color} opacity="0.07" />
+            <path d={pts(datos.map((d) => d[key]))} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </g>
+        ))}
 
         {/* Puntos */}
-        {datos.map((d, i) => {
-          const x = leftPad + i * paso;
-          return (
-            <g key={i}>
-              <circle cx={x} cy={alto - (d.miembros / maximo) * (alto - 20)} r="3" fill="white" stroke={C.azul} strokeWidth="2" />
-              <circle cx={x} cy={alto - (d.visitas / maximo) * (alto - 20)} r="3" fill="white" stroke={C.verde} strokeWidth="2" />
-              <circle cx={x} cy={alto - (d.citas / maximo) * (alto - 20)} r="3" fill="white" stroke={C.gold} strokeWidth="2" />
-            </g>
-          );
-        })}
+        {series.map(({ key, color }) =>
+          datos.map((d, i) => (
+            <circle key={`${key}-${i}`} cx={padL + i * paso} cy={alto - (d[key] / maximo) * (alto - 20)} r="3" fill="white" stroke={color} strokeWidth="2" />
+          ))
+        )}
 
-        {/* Labels — solo cada 2 meses para no encimar */}
-        {datos.filter((_, i) => i % 2 === 0).map((d, idx) => (
-          <text key={idx} x={leftPad + (idx * 2) * paso} y={alto + 14} textAnchor="middle" fontSize="8" fill="#94a3b8" fontFamily="Work Sans">{d.label}</text>
+        {/* Labels */}
+        {datos.map((d, i) => (
+          <text key={i} x={padL + i * paso} y={alto + 14} textAnchor="middle" fontSize="7" fill="#94a3b8" fontFamily="Work Sans">{d.label}</text>
         ))}
       </svg>
     </div>
