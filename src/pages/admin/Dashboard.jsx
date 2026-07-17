@@ -282,12 +282,36 @@ function GraficaLineas({ datos }) {
   const usable = w - padL - padR;
   const paso = datos.length > 1 ? usable / (datos.length - 1) : usable;
 
+  const hayDatos = datos.some((d) => d.miembros > 0 || d.visitas > 0 || d.citas > 0);
+
+  if (!hayDatos) {
+    return (
+      <div className="flex items-center justify-center h-40 text-ink/30 text-sm">
+        Sin datos de tendencia aún
+      </div>
+    );
+  }
+
   function pts(vals) {
-    return vals.map((v, i) => {
-      const x = padL + i * paso;
-      const y = alto - (v / maximo) * (alto - 20);
-      return `${i === 0 ? 'M' : 'L'}${x},${y}`;
-    }).join(' ');
+    if (vals.length < 2) return `M${padL},${alto - (vals[0] / maximo) * (alto - 20)}`;
+    const points = vals.map((v, i) => ({
+      x: padL + i * paso,
+      y: alto - (v / maximo) * (alto - 20),
+    }));
+    let d = `M${points[0].x},${points[0].y}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[Math.max(i - 1, 0)];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[Math.min(i + 2, points.length - 1)];
+      const t = 0.3;
+      const cp1x = p1.x + (p2.x - p0.x) * t;
+      const cp1y = p1.y + (p2.y - p0.y) * t;
+      const cp2x = p2.x - (p3.x - p1.x) * t;
+      const cp2y = p2.y - (p3.y - p1.y) * t;
+      d += `C${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
+    }
+    return d;
   }
 
   function fill(vals) {
@@ -305,28 +329,21 @@ function GraficaLineas({ datos }) {
   return (
     <div className="overflow-x-auto -mx-2 px-2">
       <svg viewBox={`0 0 ${w} ${alto + 20}`} className="w-full" style={{ minWidth: 350 }}>
-        {/* Grid */}
         {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => {
           const y = alto - pct * (alto - 20);
           return <line key={i} x1={padL} y1={y} x2={w - padR} y2={y} stroke="#e2e8f0" strokeWidth="0.5" strokeDasharray={i === 0 ? '' : '4 4'} />;
         })}
-
-        {/* Áreas + Líneas */}
         {series.map(({ key, color }) => (
           <g key={key}>
-            <path d={fill(datos.map((d) => d[key]))} fill={color} opacity="0.07" />
-            <path d={pts(datos.map((d) => d[key]))} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={fill(datos.map((d) => d[key]))} fill={color} opacity="0.06" />
+            <path d={pts(datos.map((d) => d[key]))} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </g>
         ))}
-
-        {/* Puntos */}
         {series.map(({ key, color }) =>
           datos.map((d, i) => (
-            <circle key={`${key}-${i}`} cx={padL + i * paso} cy={alto - (d[key] / maximo) * (alto - 20)} r="3" fill="white" stroke={color} strokeWidth="2" />
+            <circle key={`${key}-${i}`} cx={padL + i * paso} cy={alto - (d[key] / maximo) * (alto - 20)} r="4" fill="white" stroke={color} strokeWidth="2.5" />
           ))
         )}
-
-        {/* Labels */}
         {datos.map((d, i) => (
           <text key={i} x={padL + i * paso} y={alto + 14} textAnchor="middle" fontSize="7" fill="#94a3b8" fontFamily="Work Sans">{d.label}</text>
         ))}
