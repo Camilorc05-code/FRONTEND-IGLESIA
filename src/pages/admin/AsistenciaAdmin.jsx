@@ -15,6 +15,7 @@ export default function AsistenciaAdmin() {
   const [page, setPage] = useState(1);
   const [cargando, setCargando] = useState(true);
   const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
+  const [eliminando, setEliminando] = useState(null);
 
   const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
 
@@ -76,6 +77,27 @@ export default function AsistenciaAdmin() {
 
   const irAMiembro = (personaId) => {
     navigate(`/admin/personas?highlight=${personaId}`);
+  };
+
+  const eliminarFecha = async (fechaKey, label, cantidad) => {
+    const confirmar = window.confirm(
+      `¿Eliminar ${cantidad} registros de asistencia del ${label}?\n\nEsta acción no se puede deshacer.`
+    );
+    if (!confirmar) return;
+
+    setEliminando(fechaKey);
+    try {
+      const res = await fetch(`${API}/api/checkin/fecha`, {
+        method: 'DELETE',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fecha: fechaKey }),
+      });
+      if (res.ok) {
+        setFechaSeleccionada(null);
+        cargarHistorial();
+      }
+    } catch {}
+    setEliminando(null);
   };
 
   return (
@@ -189,23 +211,36 @@ export default function AsistenciaAdmin() {
               ) : (
                 <div className="space-y-3">
                   {agruparPorFecha(historial).map(([fechaKey, grupo]) => (
-                    <button
-                      key={fechaKey}
-                      onClick={() => setFechaSeleccionada(grupo)}
-                      className="w-full bg-white border rounded-xl px-5 py-4 hover:border-[#D4A017] hover:shadow-md transition-all text-left flex items-center gap-4"
-                    >
-                      <div className="w-12 h-12 bg-[#0A2A57] text-white rounded-xl flex flex-col items-center justify-center shrink-0">
-                        <span className="text-lg font-bold leading-none">{new Date(fechaKey + 'T12:00:00').getDate()}</span>
-                        <span className="text-[9px] uppercase leading-none">
-                          {new Date(fechaKey + 'T12:00:00').toLocaleDateString('es-CO', { month: 'short' })}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-800">{grupo.label}</p>
-                        <p className="text-sm text-gray-400">{grupo.items.length} personas</p>
-                      </div>
-                      <span className="text-gray-300 text-lg">→</span>
-                    </button>
+                    <div key={fechaKey} className="bg-white border rounded-xl px-5 py-4 hover:border-[#D4A017] hover:shadow-md transition-all flex items-center gap-4">
+                      <button
+                        onClick={() => setFechaSeleccionada(grupo)}
+                        className="flex-1 flex items-center gap-4 text-left"
+                      >
+                        <div className="w-12 h-12 bg-[#0A2A57] text-white rounded-xl flex flex-col items-center justify-center shrink-0">
+                          <span className="text-lg font-bold leading-none">{new Date(fechaKey + 'T12:00:00').getDate()}</span>
+                          <span className="text-[9px] uppercase leading-none">
+                            {new Date(fechaKey + 'T12:00:00').toLocaleDateString('es-CO', { month: 'short' })}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-800">{grupo.label}</p>
+                          <p className="text-sm text-gray-400">{grupo.items.length} personas</p>
+                        </div>
+                        <span className="text-gray-300 text-lg">→</span>
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); eliminarFecha(fechaKey, grupo.label, grupo.items.length); }}
+                        disabled={eliminando === fechaKey}
+                        className="shrink-0 text-red-300 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-40"
+                        title="Eliminar registros de esta fecha"
+                      >
+                        {eliminando === fechaKey ? (
+                          <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25"/><path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
+                        ) : (
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg>
+                        )}
+                      </button>
+                    </div>
                   ))}
 
                   {historial.length === 0 && (
