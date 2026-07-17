@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { api } from '../api/client';
@@ -140,6 +141,12 @@ export default function VisitanteForm() {
             <p className="text-ink/50 text-sm mt-6">
               Mientras tanto, puedes revisar nuestros horarios o agendar una cita pastoral.
             </p>
+            <Link
+              to="/"
+              className="inline-block mt-6 btn-gold shadow-gold"
+            >
+              Volver al inicio
+            </Link>
           </motion.div>
         </section>
       </div>
