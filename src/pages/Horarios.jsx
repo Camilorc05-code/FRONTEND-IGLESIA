@@ -56,7 +56,7 @@ export default function Horarios() {
               imagenes={todosFotos}
               alt="Galería de servicios"
               className="shadow-brand"
-              intervalo={5000}
+              intervalo={3000}
             />
           </Reveal>
         </section>

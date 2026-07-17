@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../api/client';
@@ -69,10 +69,24 @@ export default function Eventos() {
     .map((cat) => ({ categoria: cat, items: eventos.filter((e) => e.categoria === cat) }))
     .filter((g) => g.items.length > 0);
 
-  const todasFotos = eventos.flatMap((e) => [
-    ...(e.imagenUrl ? [e.imagenUrl] : []),
-    ...(e.imagenes || []).map((img) => img.url),
-  ]);
+  const fotosShuffled = useRef(null);
+
+  const todasFotos = (() => {
+    const raw = eventos.flatMap((e) => [
+      ...(e.imagenUrl ? [e.imagenUrl] : []),
+      ...(e.imagenes || []).map((img) => img.url),
+    ]);
+    if (!fotosShuffled.current || fotosShuffled.current._len !== raw.length) {
+      const arr = [...raw];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      arr._len = raw.length;
+      fotosShuffled.current = arr;
+    }
+    return fotosShuffled.current;
+  })();
 
   return (
     <div>
@@ -93,7 +107,7 @@ export default function Eventos() {
       {todasFotos.length > 0 && (
         <section className="max-w-5xl mx-auto px-5 md:px-8 pt-10">
           <Reveal>
-            <GaleriaAuto imagenes={todasFotos} alt="Galería de eventos" className="shadow-brand" intervalo={4500} />
+            <GaleriaAuto imagenes={todasFotos} alt="Galería de eventos" className="shadow-brand" intervalo={2800} />
           </Reveal>
         </section>
       )}

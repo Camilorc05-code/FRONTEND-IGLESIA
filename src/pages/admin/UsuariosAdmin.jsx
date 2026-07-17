@@ -61,6 +61,16 @@ export default function UsuariosAdmin() {
     }
   }
 
+  async function eliminar(usuario) {
+    if (!window.confirm(`¿Eliminar el usuario "${usuario.nombre}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await api.delete(`/auth/usuarios/${usuario.id}`);
+      cargar();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Error al eliminar usuario.');
+    }
+  }
+
   return (
     <div className="p-4 md:p-8">
       <div className="flex items-center justify-between mb-6">
@@ -109,6 +119,9 @@ export default function UsuariosAdmin() {
               <div className="flex gap-2 shrink-0">
                 <button onClick={() => toggleActivo(u)} className="btn-outline !py-1.5 !px-3 text-xs">
                   {u.activo ? 'Desactivar' : 'Activar'}
+                </button>
+                <button onClick={() => eliminar(u)} className="btn-outline !py-1.5 !px-3 text-xs !border-rojo/30 !text-rojo hover:!bg-rojo/10">
+                  Eliminar
                 </button>
               </div>
             </motion.div>

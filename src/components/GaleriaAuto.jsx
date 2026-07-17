@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
  * - Botones de navegación lateral
  * - Responsive: se adapta al contenedor padre
  */
-export function GaleriaAuto({ imagenes, alt = 'Galería', className = '', intervalo = 3000, aspect = 'aspect-video' }) {
+export function GaleriaAuto({ imagenes, alt = 'Galería', className = '', intervalo = 2800, aspect = 'aspect-video' }) {
   const [actual, setActual] = useState(0);
   const [pausado, setPausado] = useState(false);
 
@@ -45,10 +45,10 @@ export function GaleriaAuto({ imagenes, alt = 'Galería', className = '', interv
             src={imagenes[actual]}
             alt={`${alt} ${actual + 1}`}
             className="absolute inset-0 w-full h-full object-cover"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4, ease: 'easeInOut' }}
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.35, ease: 'easeInOut' }}
             draggable={false}
           />
         </AnimatePresence>

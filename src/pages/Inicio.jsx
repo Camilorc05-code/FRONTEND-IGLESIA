@@ -300,7 +300,7 @@ export default function Inicio() {
               imagenes={fotosServicios}
               alt="Galería de servicios"
               className="shadow-brand"
-              intervalo={5000}
+              intervalo={3000}
             />
           </Reveal>
         )}
@@ -376,7 +376,7 @@ export default function Inicio() {
                 imagenes={fotosEventos}
                 alt="Galería de eventos"
                 className="shadow-brand"
-                intervalo={5500}
+                intervalo={3200}
               />
             </Reveal>
           )}
@@ -401,7 +401,7 @@ export default function Inicio() {
             <p className="eyebrow mb-3">Servimos juntos</p>
             <h2 className="font-display text-3xl md:text-4xl text-ink mb-10">Nuestros ministerios</h2>
           </Reveal>
-          <StaggerGroup className="grid sm:grid-cols-2 gap-6">
+          <StaggerGroup className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <StaggerItem>
               <TiltCard max={6} className="card bg-white h-full flex items-center gap-5 shadow-brand-sm hover:border-azul overflow-hidden">
                 <div className="relative shrink-0">
@@ -434,6 +434,55 @@ export default function Inicio() {
                   <h3 className="font-display text-xl text-ink">M.J.P</h3>
                   <p className="text-sm text-ink/60 mt-1">
                     Ministerio Juvenil Panamericano — un espacio para crecer, servir y encender la próxima generación.
+                  </p>
+                </div>
+              </TiltCard>
+            </StaggerItem>
+            <StaggerItem>
+              <TiltCard max={6} className="card bg-white h-full flex items-center gap-5 shadow-brand-sm hover:border-rojo overflow-hidden">
+                <div className="relative shrink-0">
+                  <motion.div
+                    className="absolute inset-0 rounded-full bg-rojo/15 blur-xl"
+                    animate={{ scale: [1, 1.25, 1], opacity: [0.5, 0.9, 0.5] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+                  />
+                  <div className="relative w-20 h-20 rounded-full bg-rojo/10 flex items-center justify-center">
+                    <svg className="w-10 h-10 text-rojo" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 18V5l12-2v13"/>
+                      <circle cx="6" cy="18" r="3"/>
+                      <circle cx="18" cy="16" r="3"/>
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-display text-xl text-ink">Alabanza</h3>
+                  <p className="text-sm text-ink/60 mt-1">
+                    Ministerio de Alabanza — llevando alabanza y adoración como ofrenda ante la presencia de Dios.
+                  </p>
+                </div>
+              </TiltCard>
+            </StaggerItem>
+            <StaggerItem>
+              <TiltCard max={6} className="card bg-white h-full flex items-center gap-5 shadow-brand-sm hover:border-azul overflow-hidden">
+                <div className="relative shrink-0">
+                  <motion.div
+                    className="absolute inset-0 rounded-full bg-azul/15 blur-xl"
+                    animate={{ scale: [1, 1.25, 1], opacity: [0.5, 0.9, 0.5] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+                  />
+                  <div className="relative w-20 h-20 rounded-full bg-azul/10 flex items-center justify-center">
+                    <svg className="w-10 h-10 text-azul" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-display text-xl text-ink">Diáconos</h3>
+                  <p className="text-sm text-ink/60 mt-1">
+                    Ministerio de Diáconos — sirviendo con humildad y dedicación al cuidado de la iglesia y su pueblo.
                   </p>
                 </div>
               </TiltCard>

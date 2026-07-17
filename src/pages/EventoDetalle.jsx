@@ -63,7 +63,7 @@ export default function EventoDetalle() {
             alt={evento.titulo}
             className="shadow-brand"
             aspect="aspect-[16/10]"
-            intervalo={5000}
+            intervalo={3000}
           />
         ) : (
           <div className="rounded-2xl overflow-hidden">
