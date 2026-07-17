@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import logoMision from '../assets/logo-mision-transparente.png';
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -99,6 +100,7 @@ export default function Checkin() {
         className="w-full max-w-md"
       >
         <div className="text-center mb-6">
+          <img src={logoMision} alt="Misión Panamericana" className="w-20 h-20 mx-auto mb-3 object-contain drop-shadow-lg" />
           <h1 className="text-white text-3xl font-bold">Control de Asistencia</h1>
           <p className="text-blue-200 mt-1">Iglesia Misión Panamericana</p>
         </div>
