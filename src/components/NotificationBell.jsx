@@ -16,7 +16,7 @@ export default function NotificationBell() {
   const [abierto, setAbierto] = useState(false);
   const [pushActivo, setPushActivo] = useState(true);
   const [registrando, setRegistrando] = useState(false);
-  const [posicion, setPosicion] = useState({ top: 0, right: 16 });
+  const [posicion, setPosicion] = useState({ top: 0, left: 0 });
   const ref = useRef(null);
 
   async function cargar() {
@@ -54,7 +54,13 @@ export default function NotificationBell() {
   function toggle() {
     if (!abierto && ref.current) {
       const rect = ref.current.getBoundingClientRect();
-      setPosicion({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+      const dropdownWidth = 320;
+      let left = rect.left;
+      if (left + dropdownWidth > window.innerWidth - 16) {
+        left = window.innerWidth - dropdownWidth - 16;
+      }
+      if (left < 16) left = 16;
+      setPosicion({ top: rect.bottom + 8, left });
     }
     setAbierto(!abierto);
   }
@@ -106,7 +112,7 @@ export default function NotificationBell() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            style={{ position: 'fixed', top: posicion.top, right: posicion.right, zIndex: 9999 }}
+            style={{ position: 'fixed', top: posicion.top, left: posicion.left, zIndex: 9999 }}
             className="w-80 bg-white rounded-xl shadow-2xl border border-line overflow-hidden"
           >
             {!pushActivo && (
