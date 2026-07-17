@@ -1,6 +1,6 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '../api/client';
-import { registrarPush, desuscribirPush } from '../lib/push';
+import { registrarPush, verificarPush, desuscribirPush } from '../lib/push';
 
 const AuthContext = createContext(null);
 
@@ -10,12 +10,18 @@ export function AuthProvider({ children }) {
     return saved ? JSON.parse(saved) : null;
   });
 
+  useEffect(() => {
+    if (usuario) {
+      registrarPush().catch(() => {});
+    }
+  }, []);
+
   async function login(email, password) {
     const { data } = await api.post('/auth/login', { email, password });
     localStorage.setItem('token', data.token);
     localStorage.setItem('usuario', JSON.stringify(data.usuario));
     setUsuario(data.usuario);
-    registrarPush();
+    registrarPush().catch(() => {});
     return data.usuario;
   }
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../api/client';
+import { registrarPush, verificarPush } from '../lib/push';
 
 const ICONOS = {
   nuevo_miembro: '👤',
@@ -13,6 +14,8 @@ export default function NotificationBell() {
   const [notificaciones, setNotificaciones] = useState([]);
   const [noLeidas, setNoLeidas] = useState(0);
   const [abierto, setAbierto] = useState(false);
+  const [pushActivo, setPushActivo] = useState(true);
+  const [registrando, setRegistrando] = useState(false);
   const ref = useRef(null);
 
   async function cargar() {
@@ -23,18 +26,22 @@ export default function NotificationBell() {
       ]);
       setNotificaciones(notifs.data);
       setNoLeidas(count.data.count);
-    } catch {
-      // silencioso
-    }
+    } catch {}
+  }
+
+  async function checkPush() {
+    const activo = await verificarPush();
+    setPushActivo(activo);
   }
 
   useEffect(() => {
     cargar();
+    checkPush();
     const interval = setInterval(cargar, 30000);
-    return () => clearInterval(interval);
+    const pushInterval = setInterval(checkPush, 60000);
+    return () => { clearInterval(interval); clearInterval(pushInterval); };
   }, []);
 
-  // Cerrar al hacer clic fuera
   useEffect(() => {
     function handleClick(e) {
       if (ref.current && !ref.current.contains(e.target)) setAbierto(false);
@@ -42,6 +49,13 @@ export default function NotificationBell() {
     if (abierto) document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [abierto]);
+
+  async function activarPush() {
+    setRegistrando(true);
+    const result = await registrarPush();
+    setPushActivo(result.ok);
+    setRegistrando(false);
+  }
 
   async function marcarLeida(id) {
     try {
@@ -85,6 +99,20 @@ export default function NotificationBell() {
             transition={{ duration: 0.2 }}
             className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-2xl border border-line z-50 overflow-hidden"
           >
+            {!pushActivo && (
+              <div className="px-4 py-3 bg-amber-50 border-b border-amber-200">
+                <p className="text-xs text-amber-700 mb-2">
+                  Las notificaciones push no están activas. Actívalas para recibirlas fuera de la página.
+                </p>
+                <button
+                  onClick={activarPush}
+                  disabled={registrando}
+                  className="text-xs bg-amber-600 text-white px-3 py-1.5 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+                >
+                  {registrando ? 'Activando...' : 'Activar notificaciones'}
+                </button>
+              </div>
+            )}
             <div className="flex items-center justify-between px-4 py-3 border-b border-line">
               <h3 className="font-display text-sm text-ink">Notificaciones</h3>
               {noLeidas > 0 && (

@@ -1,6 +1,5 @@
 import { api } from '../api/client';
 
-// Convertir VAPID public key de base64url a Uint8Array
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -12,25 +11,24 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-// Registrar Service Worker y suscribir a push
 export async function registrarPush() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    return;
+    console.warn('[push] Service Worker o PushManager no soportados');
+    return { ok: false, reason: 'no_support' };
   }
 
   try {
-    // Pedir permiso
     const permiso = await Notification.requestPermission();
-    if (permiso !== 'granted') return;
+    if (permiso !== 'granted') {
+      console.warn('[push] Permiso de notificaciones denegado');
+      return { ok: false, reason: 'denied' };
+    }
 
-    // Registrar service worker
     const registration = await navigator.serviceWorker.register('/sw.js');
     await navigator.serviceWorker.ready;
 
-    // Obtener suscripción existente
     let subscription = await registration.pushManager.getSubscription();
 
-    // Si no tiene suscripción, crear una
     if (!subscription) {
       const { data } = await api.get('/push/vapid-key');
       const vapidKey = urlBase64ToUint8Array(data.publicKey);
@@ -41,19 +39,36 @@ export async function registrarPush() {
       });
     }
 
-    // Enviar suscripción al backend
     const sub = subscription.toJSON();
     await api.post('/push/subscribe', {
       endpoint: sub.endpoint,
       p256dh: sub.keys.p256dh,
       auth: sub.keys.auth,
     });
+
+    console.log('[push] Suscripción registrada correctamente');
+    return { ok: true };
   } catch (err) {
     console.error('[push] Error registrando push:', err.message);
+    return { ok: false, reason: err.message };
   }
 }
 
-// Desuscribir push (al cerrar sesión)
+export async function verificarPush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+
+  try {
+    const permission = Notification.permission;
+    if (permission !== 'granted') return false;
+
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    return !!subscription;
+  } catch {
+    return false;
+  }
+}
+
 export async function desuscribirPush() {
   if (!('serviceWorker' in navigator)) return;
 
