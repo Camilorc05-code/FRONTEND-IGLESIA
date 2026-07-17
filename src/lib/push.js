@@ -24,10 +24,11 @@ export async function registrarPush() {
       return { ok: false, reason: 'denied' };
     }
 
-    const registration = await navigator.serviceWorker.register('/sw.js');
-    await navigator.serviceWorker.ready;
+    const registration = await navigator.serviceWorker.ready;
+    console.log('[push] Service Worker listo');
 
     let subscription = await registration.pushManager.getSubscription();
+    console.log('[push] Suscripción existente:', !!subscription);
 
     if (!subscription) {
       const { data } = await api.get('/push/vapid-key');
@@ -37,19 +38,21 @@ export async function registrarPush() {
         userVisibleOnly: true,
         applicationServerKey: vapidKey,
       });
+      console.log('[push] Nueva suscripción creada');
     }
 
     const sub = subscription.toJSON();
+    console.log('[push] Guardando suscripción en servidor...');
     await api.post('/push/subscribe', {
       endpoint: sub.endpoint,
       p256dh: sub.keys.p256dh,
       auth: sub.keys.auth,
     });
 
-    console.log('[push] Suscripción registrada correctamente');
+    console.log('[push] ✅ Suscripción registrada correctamente');
     return { ok: true };
   } catch (err) {
-    console.error('[push] Error registrando push:', err.message);
+    console.error('[push] ❌ Error registrando push:', err.message);
     return { ok: false, reason: err.message };
   }
 }
