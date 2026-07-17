@@ -35,6 +35,15 @@ export default function AuditLog() {
     }
   }
 
+  async function eliminarTodo() {
+    if (!window.confirm('¿Seguro quieres eliminar todo el historial de cambios? Esta acción no se puede deshacer.')) return;
+    try {
+      await api.delete('/audit');
+      setLogs([]);
+      setTotal(0);
+    } catch {}
+  }
+
   useEffect(() => { cargar(); }, []);
 
   const totalPaginas = Math.ceil(total / 30);
@@ -46,6 +55,14 @@ export default function AuditLog() {
           <h1 className="font-display text-2xl text-ink mb-1">Historial de Cambios</h1>
           <p className="text-ink/50 text-sm">{total} registros</p>
         </div>
+        {total > 0 && (
+          <button
+            onClick={eliminarTodo}
+            className="text-xs text-rojo border border-rojo/30 rounded-lg px-3 py-2 hover:bg-rojo/5 transition-colors"
+          >
+            Eliminar historial
+          </button>
+        )}
       </div>
 
       {cargando && <p className="text-ink/40">Cargando…</p>}
