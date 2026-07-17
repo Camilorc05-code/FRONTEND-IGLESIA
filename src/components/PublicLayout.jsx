@@ -33,6 +33,7 @@ export function Navbar() {
       className={`sticky top-0 z-40 bg-paper/90 backdrop-blur border-b transition-shadow duration-300 ${
         scrolled ? 'border-line shadow-[0_2px_20px_-4px_rgba(10,42,87,0.12)]' : 'border-transparent'
       }`}
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
       <div
         className="h-[3px] w-full"
@@ -129,7 +130,7 @@ export function Navbar() {
 
 export function Footer() {
   return (
-    <footer className="bg-ink text-paper/80 relative">
+    <footer className="bg-ink text-paper/80 relative" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div
         className="h-[3px] w-full"
         style={{ background: 'linear-gradient(90deg, #FFCD02, #E1011D, #024293)' }}

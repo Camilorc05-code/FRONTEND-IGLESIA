@@ -45,32 +45,34 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-paper2 flex flex-col md:flex-row">
       {/* Barra superior — solo visible en móvil/tablet */}
-      <header className="md:hidden sticky top-0 z-40 bg-ink text-paper flex items-center justify-between px-4 h-16 shrink-0">
-        <div className="flex items-center gap-3">
-          <img src={logoMision} alt="Misión Panamericana" className="w-8 h-8 object-contain" />
-          <div>
-            <p className="font-display text-base leading-tight">Panel interno</p>
-            <p className="text-[11px] text-paper/50">{usuario?.nombre}</p>
+      <header className="md:hidden sticky top-0 z-40 bg-ink text-paper" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        <div className="flex items-center justify-between px-4 h-14 shrink-0">
+          <div className="flex items-center gap-3">
+            <img src={logoMision} alt="Misión Panamericana" className="w-8 h-8 object-contain" />
+            <div>
+              <p className="font-display text-base leading-tight">Panel interno</p>
+              <p className="text-[11px] text-paper/50">{usuario?.nombre}</p>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <NotificationBell />
-          <button
-            onClick={logout}
-            className="text-paper/50 hover:text-paper text-xs px-2 py-1"
-          >
-            Salir
-          </button>
-          <button
-            onClick={() => setAbierto((o) => !o)}
-            aria-label="Abrir menú del panel"
-            aria-expanded={abierto}
-            className="p-2 -mr-2"
-          >
-            <motion.svg width="24" height="24" viewBox="0 0 24 24" fill="none" animate={{ rotate: abierto ? 90 : 0 }} transition={{ duration: 0.2 }}>
-              <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </motion.svg>
-          </button>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <button
+              onClick={logout}
+              className="text-paper/50 hover:text-paper text-xs px-2 py-1"
+            >
+              Salir
+            </button>
+            <button
+              onClick={() => setAbierto((o) => !o)}
+              aria-label="Abrir menú del panel"
+              aria-expanded={abierto}
+              className="p-2 -mr-2"
+            >
+              <motion.svg width="24" height="24" viewBox="0 0 24 24" fill="none" animate={{ rotate: abierto ? 90 : 0 }} transition={{ duration: 0.2 }}>
+                <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </motion.svg>
+            </button>
+          </div>
         </div>
       </header>
 
