@@ -176,10 +176,11 @@ export default function Citas() {
           {cargando && <p className="text-ink/40">Cargando…</p>}
           {!cargando && citas.length === 0 && <p className="text-ink/40">No hay citas para mostrar.</p>}
 
-          {citas.map((c) => (
+          {citas.map((c, i) => (
             <div key={c.id} className="bg-white rounded-xl border border-line p-5 flex flex-col md:flex-row md:items-center gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-xs text-ink/30 font-mono">#{i + 1}</span>
                   <h3 className="font-display text-lg text-ink">{c.nombreSolicitante}</h3>
                   <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${ESTILO_ESTADO[c.estado]}`}>
                     {c.estado}

@@ -90,7 +90,7 @@ export default function UsuariosAdmin() {
 
       <div className="space-y-3">
         <AnimatePresence>
-          {usuarios.map((u) => (
+          {usuarios.map((u, i) => (
             <motion.div
               key={u.id}
               layout
@@ -101,6 +101,7 @@ export default function UsuariosAdmin() {
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-xs text-ink/30 font-mono">#{i + 1}</span>
                   <h3 className="font-display text-lg text-ink">{u.nombre}</h3>
                   <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${ROL_COLORES[u.rol]}`}>
                     {ROL_LABELS[u.rol] || u.rol}

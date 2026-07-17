@@ -134,7 +134,7 @@ export default function BebesAdmin() {
 
       <div className="space-y-3">
         <AnimatePresence>
-          {filtradas.map((b) => (
+          {filtradas.map((b, i) => (
             <motion.div
               key={b.id}
               layout
@@ -145,6 +145,7 @@ export default function BebesAdmin() {
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-xs text-ink/30 font-mono">#{i + 1}</span>
                   <h3 className="font-display text-lg text-ink">{b.nombreBebe}</h3>
                   <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-gold/20 text-gold-dark">
                     {new Date(b.fechaPresentacion).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}

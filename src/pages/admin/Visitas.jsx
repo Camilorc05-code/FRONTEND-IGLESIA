@@ -95,6 +95,7 @@ export default function Visitas() {
         <table className="w-full text-sm min-w-[700px]">
           <thead className="bg-paper2 text-ink/60 text-left">
             <tr>
+              <th className="px-3 py-3 font-medium w-12">#</th>
               <th className="px-5 py-3 font-medium">Nombre</th>
               <th className="px-5 py-3 font-medium">Celular</th>
               <th className="px-5 py-3 font-medium">Correo</th>
@@ -107,13 +108,14 @@ export default function Visitas() {
           </thead>
           <tbody className="divide-y divide-line">
             {cargando && (
-              <tr><td colSpan={8} className="px-5 py-6 text-center text-ink/40">Cargando…</td></tr>
+              <tr><td colSpan={9} className="px-5 py-6 text-center text-ink/40">Cargando…</td></tr>
             )}
             {!cargando && filtradas.length === 0 && (
-              <tr><td colSpan={8} className="px-5 py-6 text-center text-ink/40">No hay registros.</td></tr>
+              <tr><td colSpan={9} className="px-5 py-6 text-center text-ink/40">No hay registros.</td></tr>
             )}
-            {filtradas.map((v) => (
+            {filtradas.map((v, i) => (
               <tr key={v.id} className="hover:bg-paper2/50">
+                <td className="px-3 py-3 text-ink/40 text-xs text-center">{i + 1}</td>
                 <td className="px-5 py-3 font-medium text-ink">{v.nombres} {v.apellidos}</td>
                 <td className="px-5 py-3 text-ink/70">{v.telefono}</td>
                 <td className="px-5 py-3 text-ink/70">{v.email || '—'}</td>
