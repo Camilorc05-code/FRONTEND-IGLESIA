@@ -35,6 +35,8 @@ export default function VisitanteForm() {
     apellidos: '',
     email: '',
     telefono: '',
+    tipoDocumento: '',
+    numeroDocumento: '',
     direccion: '',
     barrio: '',
     adicional: '',
@@ -86,6 +88,8 @@ export default function VisitanteForm() {
         apellidos: form.apellidos.trim(),
         email: form.email.trim() || undefined,
         telefono: form.telefono.trim(),
+        tipoDocumento: form.tipoDocumento || undefined,
+        numeroDocumento: form.numeroDocumento || undefined,
         direccion: form.direccion.trim() || undefined,
         barrio: form.barrio.trim() || undefined,
         adicional: form.adicional.trim() || undefined,
@@ -243,6 +247,30 @@ export default function VisitanteForm() {
                       onChange={(e) => actualizar('telefono', e.target.value)}
                     />
                     {errores.telefono && <p className="text-rojo text-xs mt-1">{errores.telefono}</p>}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="label">Tipo de documento <span className="text-ink/30">(opcional)</span></label>
+                      <select
+                        className="input"
+                        value={form.tipoDocumento || ''}
+                        onChange={(e) => actualizar('tipoDocumento', e.target.value)}
+                      >
+                        <option value="">Seleccionar</option>
+                        <option value="CC">Cédula de Ciudadanía</option>
+                        <option value="TI">Tarjeta de Identidad</option>
+                        <option value="CE">Cédula de Extranjería</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label">Número de documento <span className="text-ink/30">(opcional)</span></label>
+                      <input
+                        className="input"
+                        placeholder="Ej: 1234567890"
+                        value={form.numeroDocumento || ''}
+                        onChange={(e) => actualizar('numeroDocumento', e.target.value)}
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className="label">Correo electrónico <span className="text-ink/30">(opcional)</span></label>
