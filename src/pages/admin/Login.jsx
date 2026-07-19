@@ -14,15 +14,15 @@ export default function Login() {
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
 
-  // Estado para SMS OTP
+  // Estado para OTP por email
   const [requires2FA, setRequires2FA] = useState(false);
   const [tempToken, setTempToken] = useState(null);
-  const [usuarioSMS, setUsuarioSMS] = useState(null);
+  const [usuarioOTP, setUsuarioOTP] = useState(null);
   const [otpCode, setOtpCode] = useState('');
   const [errorOTP, setErrorOTP] = useState('');
   const [cargandoOTP, setCargandoOTP] = useState(false);
-  const [smsEnviado, setSmsEnviado] = useState(false);
-  const [enviandoSMS, setEnviandoSMS] = useState(false);
+  const [emailEnviado, setEmailEnviado] = useState(false);
+  const [enviandoEmail, setEnviandoEmail] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
   useEffect(() => {
@@ -33,7 +33,6 @@ export default function Login() {
     }
   }, []);
 
-  // Countdown para reenviar SMS
   useEffect(() => {
     if (countdown <= 0) return;
     const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -54,21 +53,10 @@ export default function Login() {
       }
 
       if (resultado.requires2FA) {
-        const deviceKey = `sms_verified_${resultado.usuario.id}`;
-        if (localStorage.getItem(deviceKey)) {
-          // Dispositivo ya verificado — pedir código directamente
-          setRequires2FA(true);
-          setTempToken(resultado.tempToken);
-          setUsuarioSMS(resultado.usuario);
-          // Enviar SMS automáticamente
-          enviarSMS(resultado.tempToken);
-        } else {
-          // Primer login — mostrar pantalla SMS
-          setRequires2FA(true);
-          setTempToken(resultado.tempToken);
-          setUsuarioSMS(resultado.usuario);
-          enviarSMS(resultado.tempToken);
-        }
+        setRequires2FA(true);
+        setTempToken(resultado.tempToken);
+        setUsuarioOTP(resultado.usuario);
+        enviarEmail(resultado.tempToken);
       }
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo iniciar sesión.');
@@ -77,25 +65,25 @@ export default function Login() {
     }
   }
 
-  async function enviarSMS(token) {
-    setEnviandoSMS(true);
+  async function enviarEmail(token) {
+    setEnviandoEmail(true);
     setErrorOTP('');
     try {
       await api.post('/otp/enviar', null, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSmsEnviado(true);
-      setCountdown(60); // 60 segundos para reenviar
+      setEmailEnviado(true);
+      setCountdown(60);
     } catch (err) {
-      setErrorOTP(err.response?.data?.error || 'Error al enviar el SMS.');
+      setErrorOTP(err.response?.data?.error || 'Error al enviar el correo.');
     } finally {
-      setEnviandoSMS(false);
+      setEnviandoEmail(false);
     }
   }
 
-  async function reenviarSMS() {
+  async function reenviarEmail() {
     if (countdown > 0) return;
-    await enviarSMS(tempToken);
+    await enviarEmail(tempToken);
     setOtpCode('');
   }
 
@@ -106,8 +94,7 @@ export default function Login() {
     try {
       const { data } = await api.post('/otp/validar', { token: tempToken, codigo: otpCode });
 
-      // Marcar dispositivo como verificado
-      const deviceKey = `sms_verified_${usuarioSMS.id}`;
+      const deviceKey = `email_verified_${usuarioOTP.id}`;
       localStorage.setItem(deviceKey, 'true');
 
       await complete2FALogin(data.fullToken, data.usuario);
@@ -119,8 +106,6 @@ export default function Login() {
       setCargandoOTP(false);
     }
   }
-
-  const phoneLast4 = usuarioSMS?.telefono ? usuarioSMS.telefono.slice(-4) : '';
 
   return (
     <div className="min-h-screen bg-ink flex items-center justify-center px-5">
@@ -202,22 +187,23 @@ export default function Login() {
               <div className="text-center mb-2">
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-azul/10 mb-3">
                   <svg className="w-7 h-7 text-azul" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h2 className="font-display text-lg text-ink">Verificación por SMS</h2>
+                <h2 className="font-display text-lg text-ink">Verificación por correo</h2>
                 <p className="text-sm text-ink/50 mt-1">
-                  Enviamos un código de 6 dígitos al número terminado en <strong>****{phoneLast4}</strong>
+                  Enviamos un código de 6 dígitos a<br />
+                  <strong>{usuarioOTP?.email}</strong>
                 </p>
               </div>
 
-              {smsEnviado && (
+              {emailEnviado && (
                 <div className="bg-verde/5 border border-verde/20 rounded-xl p-3 text-center">
                   <p className="text-xs text-verde font-medium">✓ Código enviado correctamente</p>
                 </div>
               )}
 
-              {enviandoSMS && (
+              {enviandoEmail && (
                 <div className="flex justify-center py-2">
                   <div className="w-6 h-6 border-2 border-azul border-t-transparent rounded-full animate-spin" />
                 </div>
@@ -236,20 +222,20 @@ export default function Login() {
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                   autoFocus
-                  disabled={enviandoSMS}
+                  disabled={enviandoEmail}
                 />
               </div>
 
               {errorOTP && <p className="text-rojo text-sm">{errorOTP}</p>}
 
-              <button type="submit" disabled={cargandoOTP || otpCode.length !== 6 || enviandoSMS} className="btn-gold w-full disabled:opacity-60">
+              <button type="submit" disabled={cargandoOTP || otpCode.length !== 6 || enviandoEmail} className="btn-gold w-full disabled:opacity-60">
                 {cargandoOTP ? 'Verificando…' : 'Verificar'}
               </button>
 
               <button
                 type="button"
-                onClick={reenviarSMS}
-                disabled={countdown > 0 || enviandoSMS}
+                onClick={reenviarEmail}
+                disabled={countdown > 0 || enviandoEmail}
                 className="w-full text-center text-sm text-azul hover:text-azul/80 py-1 disabled:text-ink/30 disabled:cursor-not-allowed"
               >
                 {countdown > 0 ? `Reenviar código en ${countdown}s` : 'Reenviar código'}
@@ -259,7 +245,7 @@ export default function Login() {
                 type="button"
                 onClick={() => {
                   setRequires2FA(false);
-                  setSmsEnviado(false);
+                  setEmailEnviado(false);
                   setOtpCode('');
                   setErrorOTP('');
                   setCountdown(0);
