@@ -373,9 +373,9 @@ function GraficaDona({ datos }) {
   });
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-8">
-      <div className="relative">
-        <svg viewBox="0 0 180 180" width="180" height="180">
+    <div className="flex flex-col items-center gap-4">
+      <div className="relative w-full max-w-[180px]">
+        <svg viewBox="0 0 180 180" className="w-full h-auto">
           {segmentos.map((s, i) => (
             <path
               key={i}
@@ -398,7 +398,7 @@ function GraficaDona({ datos }) {
         </svg>
       </div>
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-3">
         {datos.map((d, i) => (
           <div key={i} className="flex items-center gap-3">
             <span className="w-3 h-3 rounded-sm shrink-0 inline-block" style={{ backgroundColor: d.color }} />
