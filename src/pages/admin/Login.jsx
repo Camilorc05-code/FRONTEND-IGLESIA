@@ -109,8 +109,36 @@ export default function Login() {
 
   async function reenviarEmail() {
     if (countdown > 0) return;
-    await enviarEmail(tempToken);
     setOtpCode('');
+    setErrorOTP('');
+    // Intentar reenviar con el token actual
+    try {
+      await api.post('/otp/enviar', null, {
+        headers: { Authorization: `Bearer ${tempToken}` },
+      });
+      setEmailEnviado(true);
+      setCountdown(60);
+    } catch (err) {
+      // Si el token expiró, obtener uno nuevo
+      if (err.response?.status === 401 || err.response?.data?.code === 'TOKEN_EXPIRED') {
+        try {
+          const { data: nuevoLogin } = await api.post('/auth/login', { email, password });
+          if (nuevoLogin.tempToken) {
+            setTempToken(nuevoLogin.tempToken);
+            await api.post('/otp/enviar', null, {
+              headers: { Authorization: `Bearer ${nuevoLogin.tempToken}` },
+            });
+            setEmailEnviado(true);
+            setCountdown(60);
+            setErrorOTP('Se envió un nuevo código a tu correo.');
+          }
+        } catch {
+          setErrorOTP('Tu sesión expiró. Inicia sesión de nuevo.');
+        }
+      } else {
+        setErrorOTP(err.response?.data?.error || 'Error al reenviar código.');
+      }
+    }
   }
 
   async function validarCodigo(e) {
@@ -127,7 +155,29 @@ export default function Login() {
       await complete2FALogin(data.fullToken, data.usuario);
       navigate('/admin');
     } catch (err) {
-      setErrorOTP(err.response?.data?.error || 'Código incorrecto.');
+      const msg = err.response?.data?.error || 'Código incorrecto.';
+      // Si el tempToken expiró, obtener uno nuevo automáticamente
+      if (msg.includes('Token expirado') || msg.includes('Token inválido') || err.response?.status === 401) {
+        try {
+          const { data: nuevoLogin } = await api.post('/auth/login', { email, password });
+          if (nuevoLogin.tempToken) {
+            setTempToken(nuevoLogin.tempToken);
+            await api.post('/otp/enviar', null, {
+              headers: { Authorization: `Bearer ${nuevoLogin.tempToken}` },
+            });
+            setEmailEnviado(true);
+            setCountdown(60);
+            setErrorOTP('El código anterior expiró. Se envió un nuevo código a tu correo.');
+            setOtpCode('');
+            setCargandoOTP(false);
+            return;
+          }
+        } catch {
+          setErrorOTP('Tu sesión expiró. Inicia sesión de nuevo.');
+        }
+      } else {
+        setErrorOTP(msg);
+      }
       setOtpCode('');
     } finally {
       setCargandoOTP(false);
