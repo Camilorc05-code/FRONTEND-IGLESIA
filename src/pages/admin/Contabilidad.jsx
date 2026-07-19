@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { api } from '../../api/client';
 
@@ -15,6 +15,16 @@ function formatMoney(n) {
   return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
 }
 
+function parseMonto(str) {
+  return parseInt(str.replace(/\D/g, ''), 10) || 0;
+}
+
+function formatMontoInput(str) {
+  const digits = str.replace(/\D/g, '');
+  if (!digits) return '';
+  return Number(digits).toLocaleString('es-CO');
+}
+
 export default function Contabilidad() {
   const [movimientos, setMovimientos] = useState([]);
   const [resumen, setResumen] = useState(null);
@@ -27,9 +37,19 @@ export default function Contabilidad() {
   const [form, setForm] = useState({ tipo: 'diezmo', monto: '', personaId: '', nombreAnonimo: '', descripcion: '', metodoPago: 'Efectivo', fecha: new Date().toISOString().split('T')[0], notas: '' });
   const [error, setError] = useState('');
   const [exito, setExito] = useState('');
+  const [personaBusqueda, setPersonaBusqueda] = useState('');
+  const [showPersonaDropdown, setShowPersonaDropdown] = useState(false);
+  const personaRef = useRef(null);
 
   useEffect(() => { cargarResumen(); cargarPersonas(); }, []);
   useEffect(() => { cargarMovimientos(); }, [filtro, pagina]);
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (personaRef.current && !personaRef.current.contains(e.target)) setShowPersonaDropdown(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   async function cargarResumen() {
     try {
@@ -61,15 +81,16 @@ export default function Contabilidad() {
   async function registrarMovimiento(e) {
     e.preventDefault();
     setError(''); setExito('');
-    if (!form.monto || Number(form.monto) <= 0) return setError('Ingresa un monto válido.');
+    if (!form.monto || parseMonto(form.monto) <= 0) return setError('Ingresa un monto válido.');
     if (form.tipo !== 'gasto' && !form.personaId && !form.nombreAnonimo) return setError('Selecciona una persona o escribe un nombre anónimo.');
     try {
-      const payload = { ...form, monto: Number(form.monto) };
+      const payload = { ...form, monto: parseMonto(form.monto) };
       if (!payload.personaId) payload.personaId = undefined;
       await api.post('/contabilidad', payload);
       setExito('Movimiento registrado correctamente.');
       setShowForm(false);
       setForm({ tipo: 'diezmo', monto: '', personaId: '', nombreAnonimo: '', descripcion: '', metodoPago: 'Efectivo', fecha: new Date().toISOString().split('T')[0], notas: '' });
+      setPersonaBusqueda('');
       cargarResumen();
       cargarMovimientos();
       setTimeout(() => setExito(''), 3000);
@@ -152,18 +173,80 @@ export default function Contabilidad() {
                 </select>
               </div>
               <div>
-                <label className="label">Monto ($)</label>
-                <input type="number" className="input" placeholder="0" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} required min="1" />
+                <label className="label">Monto (COP)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/40 text-sm">$</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    className="input pl-7"
+                    placeholder="0"
+                    value={form.monto}
+                    onChange={(e) => setForm({ ...form, monto: formatMontoInput(e.target.value) })}
+                    required
+                  />
+                </div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div>
+              <div className="relative" ref={personaRef}>
                 <label className="label">Persona (miembro)</label>
-                <select className="input" value={form.personaId} onChange={(e) => setForm({ ...form, personaId: e.target.value, nombreAnonimo: '' })}>
-                  <option value="">— Seleccionar —</option>
-                  {personas.map((p) => <option key={p.id} value={p.id}>{p.nombres} {p.apellidos}</option>)}
-                </select>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="Buscar por nombre o cédula…"
+                  value={form.personaId ? personas.find((p) => p.id === form.personaId) ? `${personas.find((p) => p.id === form.personaId).nombres} ${personas.find((p) => p.id === form.personaId).apellidos}` : personaBusqueda : personaBusqueda}
+                  onChange={(e) => {
+                    setPersonaBusqueda(e.target.value);
+                    setShowPersonaDropdown(true);
+                    if (form.personaId) setForm({ ...form, personaId: '', nombreAnonimo: '' });
+                  }}
+                  onFocus={() => setShowPersonaDropdown(true)}
+                  disabled={!!form.nombreAnonimo}
+                />
+                {showPersonaDropdown && !form.nombreAnonimo && (
+                  <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-line rounded-xl shadow-lg max-h-56 overflow-y-auto">
+                    {personas.filter((p) => {
+                      const q = personaBusqueda.toLowerCase();
+                      if (!q) return true;
+                      const nombre = `${p.nombres} ${p.apellidos}`.toLowerCase();
+                      const doc = (p.numeroDocumento || '').toLowerCase();
+                      return nombre.includes(q) || doc.includes(q);
+                    }).length === 0 ? (
+                      <div className="p-3 text-sm text-ink/40 text-center">Sin resultados</div>
+                    ) : (
+                      personas.filter((p) => {
+                        const q = personaBusqueda.toLowerCase();
+                        if (!q) return true;
+                        const nombre = `${p.nombres} ${p.apellidos}`.toLowerCase();
+                        const doc = (p.numeroDocumento || '').toLowerCase();
+                        return nombre.includes(q) || doc.includes(q);
+                      }).slice(0, 30).map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          className="w-full text-left px-3 py-2 hover:bg-paper2 text-sm flex justify-between items-center"
+                          onClick={() => {
+                            setForm({ ...form, personaId: p.id, nombreAnonimo: '' });
+                            setPersonaBusqueda('');
+                            setShowPersonaDropdown(false);
+                          }}
+                        >
+                          <span className="text-ink">{p.nombres} {p.apellidos}</span>
+                          <span className="text-ink/40 text-xs">{p.numeroDocumento || '—'}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+                {form.personaId && (
+                  <button
+                    type="button"
+                    className="absolute right-3 top-8 text-ink/30 hover:text-rojo text-xs"
+                    onClick={() => { setForm({ ...form, personaId: '' }); setPersonaBusqueda(''); }}
+                  >✕</button>
+                )}
               </div>
               <div>
                 <label className="label">O nombre anónimo/externo</label>
