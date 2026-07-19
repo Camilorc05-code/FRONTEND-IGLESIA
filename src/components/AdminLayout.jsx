@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { NavLink, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../api/client';
 import logoMision from '../assets/logo-mision-transparente.png';
 import NotificationBell from './NotificationBell';
 
@@ -42,6 +43,23 @@ export default function AdminLayout() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
+
+  // Recordatorios in-app: check cada 5 minutos si hay citas próximas
+  useEffect(() => {
+    if (!usuario) return;
+    const checkRecordatorios = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        await api.get('/citas/auto-recordatorios', {
+          params: { token: 'iglesia-recordatorios-2026-secreto' },
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch { /* ignorar */ }
+    };
+    checkRecordatorios();
+    const interval = setInterval(checkRecordatorios, 5 * 60 * 1000); // cada 5 min
+    return () => clearInterval(interval);
+  }, [usuario]);
 
   return (
     <div className="min-h-screen bg-paper2 flex flex-col md:flex-row">
