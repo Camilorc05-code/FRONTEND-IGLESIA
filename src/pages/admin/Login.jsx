@@ -58,19 +58,24 @@ export default function Login() {
         const storedToken = localStorage.getItem(deviceTokenKey);
 
         if (storedToken) {
-          // Intentar usar el token guardado
+          // Intentar usar el token guardado (fetch directo para evitar interceptor de logout)
           try {
-            const { data } = await api.get('/auth/me', {
+            const API_URL = import.meta.env.VITE_API_URL || 'https://backend-iglesia-3op0.onrender.com';
+            const resp = await fetch(`${API_URL}/api/auth/me`, {
               headers: { Authorization: `Bearer ${storedToken}` },
             });
-            // Token sigue válido — entrar directo
-            await complete2FALogin(storedToken, data);
-            navigate('/admin');
-            return;
+            if (resp.ok) {
+              const data = await resp.json();
+              // Token sigue válido — entrar directo
+              await complete2FALogin(storedToken, data);
+              navigate('/admin');
+              return;
+            }
           } catch {
-            // Token expirado — limpiar y pedir código
-            localStorage.removeItem(deviceTokenKey);
+            // Error de red
           }
+          // Token expirado o inválido — limpiar y pedir código
+          localStorage.removeItem(deviceTokenKey);
         }
 
         // Dispositivo nuevo o token expirado — mostrar pantalla de código
