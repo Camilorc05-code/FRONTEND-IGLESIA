@@ -294,119 +294,168 @@ export default function Contabilidad() {
             onSubmit={registrarMovimiento}
             className="bg-white rounded-xl border border-line p-5 space-y-4 mb-6"
           >
-            <h3 className="font-display font-semibold text-ink">{editandoId ? 'Editar registro' : 'Nuevo registro'}</h3>
+            <h3 className="font-display font-semibold text-ink">{editandoId ? 'Editar registro' : form.tipo === 'gasto' ? 'Registrar gasto' : 'Nuevo registro'}</h3>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="label">Tipo</label>
-                <select className="input" value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })}>
-                  {TIPOS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="label">Monto (COP)</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/40 text-sm">$</span>
+            {/* Tipo */}
+            <div>
+              <label className="label">Tipo</label>
+              <select className="input" value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })}>
+                {TIPOS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
+            </div>
+
+            {/* ====== GASTO ====== */}
+            {form.tipo === 'gasto' && (
+              <>
+                <div>
+                  <label className="label">¿En qué se gastó?</label>
                   <input
                     type="text"
-                    inputMode="numeric"
-                    className="input pl-7"
-                    placeholder="0"
-                    value={form.monto}
-                    onChange={(e) => setForm({ ...form, monto: formatMontoInput(e.target.value) })}
+                    className="input"
+                    placeholder="Ej: Papelería, Servicio de limpieza, Transporte…"
+                    value={form.descripcion}
+                    onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
                     required
                   />
                 </div>
-              </div>
-            </div>
+                <div>
+                  <label className="label">Monto (COP)</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/40 text-sm">$</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      className="input pl-7"
+                      placeholder="0"
+                      value={form.monto}
+                      onChange={(e) => setForm({ ...form, monto: formatMontoInput(e.target.value) })}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="label">Método de pago</label>
+                    <select className="input" value={form.metodoPago} onChange={(e) => setForm({ ...form, metodoPago: e.target.value })}>
+                      {METODOS.map((m) => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Fecha</label>
+                    <input type="date" className="input" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
+                  </div>
+                </div>
+              </>
+            )}
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="relative" ref={personaRef}>
-                <label className="label">Persona (miembro)</label>
-                <input
-                  type="text"
-                  className="input"
-                  placeholder="Buscar por nombre o cédula…"
-                  value={form.personaId ? personas.find((p) => p.id === form.personaId) ? `${personas.find((p) => p.id === form.personaId).nombres} ${personas.find((p) => p.id === form.personaId).apellidos}` : personaBusqueda : personaBusqueda}
-                  onChange={(e) => {
-                    setPersonaBusqueda(e.target.value);
-                    setShowPersonaDropdown(true);
-                    if (form.personaId) setForm({ ...form, personaId: '', nombreAnonimo: '' });
-                  }}
-                  onFocus={() => setShowPersonaDropdown(true)}
-                  disabled={!!form.nombreAnonimo}
-                />
-                {showPersonaDropdown && !form.nombreAnonimo && (
-                  <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-line rounded-xl shadow-lg max-h-56 overflow-y-auto">
-                    {personas.filter((p) => {
-                      const q = personaBusqueda.toLowerCase();
-                      if (!q) return true;
-                      const nombre = `${p.nombres} ${p.apellidos}`.toLowerCase();
-                      const doc = (p.numeroDocumento || '').toLowerCase();
-                      return nombre.includes(q) || doc.includes(q);
-                    }).length === 0 ? (
-                      <div className="p-3 text-sm text-ink/40 text-center">Sin resultados</div>
-                    ) : (
-                      personas.filter((p) => {
-                        const q = personaBusqueda.toLowerCase();
-                        if (!q) return true;
-                        const nombre = `${p.nombres} ${p.apellidos}`.toLowerCase();
-                        const doc = (p.numeroDocumento || '').toLowerCase();
-                        return nombre.includes(q) || doc.includes(q);
-                      }).slice(0, 30).map((p) => (
-                        <button
-                          key={p.id}
-                          type="button"
-                          className="w-full text-left px-3 py-2 hover:bg-paper2 text-sm flex justify-between items-center"
-                          onClick={() => {
-                            setForm({ ...form, personaId: p.id, nombreAnonimo: '' });
-                            setPersonaBusqueda('');
-                            setShowPersonaDropdown(false);
-                          }}
-                        >
-                          <span className="text-ink">{p.nombres} {p.apellidos}</span>
-                          <span className="text-ink/40 text-xs">{p.numeroDocumento || '—'}</span>
-                        </button>
-                      ))
+            {/* ====== DIEZMO / OFRENDA / DONACIÓN ====== */}
+            {form.tipo !== 'gasto' && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="label">Monto (COP)</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/40 text-sm">$</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        className="input pl-7"
+                        placeholder="0"
+                        value={form.monto}
+                        onChange={(e) => setForm({ ...form, monto: formatMontoInput(e.target.value) })}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="label">Fecha</label>
+                    <input type="date" className="input" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="relative" ref={personaRef}>
+                    <label className="label">Persona (miembro)</label>
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="Buscar por nombre o cédula…"
+                      value={form.personaId ? personas.find((p) => p.id === form.personaId) ? `${personas.find((p) => p.id === form.personaId).nombres} ${personas.find((p) => p.id === form.personaId).apellidos}` : personaBusqueda : personaBusqueda}
+                      onChange={(e) => {
+                        setPersonaBusqueda(e.target.value);
+                        setShowPersonaDropdown(true);
+                        if (form.personaId) setForm({ ...form, personaId: '', nombreAnonimo: '' });
+                      }}
+                      onFocus={() => setShowPersonaDropdown(true)}
+                      disabled={!!form.nombreAnonimo}
+                    />
+                    {showPersonaDropdown && !form.nombreAnonimo && (
+                      <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-line rounded-xl shadow-lg max-h-56 overflow-y-auto">
+                        {personas.filter((p) => {
+                          const q = personaBusqueda.toLowerCase();
+                          if (!q) return true;
+                          const nombre = `${p.nombres} ${p.apellidos}`.toLowerCase();
+                          const doc = (p.numeroDocumento || '').toLowerCase();
+                          return nombre.includes(q) || doc.includes(q);
+                        }).length === 0 ? (
+                          <div className="p-3 text-sm text-ink/40 text-center">Sin resultados</div>
+                        ) : (
+                          personas.filter((p) => {
+                            const q = personaBusqueda.toLowerCase();
+                            if (!q) return true;
+                            const nombre = `${p.nombres} ${p.apellidos}`.toLowerCase();
+                            const doc = (p.numeroDocumento || '').toLowerCase();
+                            return nombre.includes(q) || doc.includes(q);
+                          }).slice(0, 30).map((p) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              className="w-full text-left px-3 py-2 hover:bg-paper2 text-sm flex justify-between items-center"
+                              onClick={() => {
+                                setForm({ ...form, personaId: p.id, nombreAnonimo: '' });
+                                setPersonaBusqueda('');
+                                setShowPersonaDropdown(false);
+                              }}
+                            >
+                              <span className="text-ink">{p.nombres} {p.apellidos}</span>
+                              <span className="text-ink/40 text-xs">{p.numeroDocumento || '—'}</span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                    {form.personaId && (
+                      <button
+                        type="button"
+                        className="absolute right-3 top-8 text-ink/30 hover:text-rojo text-xs"
+                        onClick={() => { setForm({ ...form, personaId: '' }); setPersonaBusqueda(''); }}
+                      >✕</button>
                     )}
                   </div>
-                )}
-                {form.personaId && (
-                  <button
-                    type="button"
-                    className="absolute right-3 top-8 text-ink/30 hover:text-rojo text-xs"
-                    onClick={() => { setForm({ ...form, personaId: '' }); setPersonaBusqueda(''); }}
-                  >✕</button>
-                )}
-              </div>
-              <div>
-                <label className="label">O nombre anónimo/externo</label>
-                <input type="text" className="input" placeholder="Anónimo / Nombre" value={form.nombreAnonimo} onChange={(e) => setForm({ ...form, nombreAnonimo: e.target.value, personaId: '' })} disabled={!!form.personaId} />
-              </div>
-            </div>
+                  <div>
+                    <label className="label">O nombre anónimo/externo</label>
+                    <input type="text" className="input" placeholder="Anónimo / Nombre" value={form.nombreAnonimo} onChange={(e) => setForm({ ...form, nombreAnonimo: e.target.value, personaId: '' })} disabled={!!form.personaId} />
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="label">Método de pago</label>
-                <select className="input" value={form.metodoPago} onChange={(e) => setForm({ ...form, metodoPago: e.target.value })}>
-                  {METODOS.map((m) => <option key={m} value={m}>{m}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="label">Fecha</label>
-                <input type="date" className="input" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
-              </div>
-            </div>
+                <div>
+                  <label className="label">Método de pago</label>
+                  <select className="input" value={form.metodoPago} onChange={(e) => setForm({ ...form, metodoPago: e.target.value })}>
+                    {METODOS.map((m) => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
 
-            <div>
-              <label className="label">Descripción (opcional)</label>
-              <input type="text" className="input" placeholder="Ej: Ofrenda domingo 20 julio" value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} />
-            </div>
+                <div>
+                  <label className="label">Descripción (opcional)</label>
+                  <input type="text" className="input" placeholder="Ej: Ofrenda domingo 20 julio" value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} />
+                </div>
+              </>
+            )}
 
             {error && <p className="text-rojo text-sm">{error}</p>}
             {exito && <p className="text-verde text-sm">{exito}</p>}
 
-            <button type="submit" className="btn-gold w-full">{editandoId ? 'Guardar cambios' : 'Registrar movimiento'}</button>
+            <button type="submit" className="btn-gold w-full">{editandoId ? 'Guardar cambios' : form.tipo === 'gasto' ? 'Registrar gasto' : 'Registrar movimiento'}</button>
           </motion.form>
         )}
 
