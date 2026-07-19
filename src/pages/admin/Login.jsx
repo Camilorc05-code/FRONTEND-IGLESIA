@@ -14,21 +14,16 @@ export default function Login() {
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
 
-  // Estado para 2FA
+  // Estado para SMS OTP
   const [requires2FA, setRequires2FA] = useState(false);
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [tempToken, setTempToken] = useState(null);
-  const [usuario2FA, setUsuario2FA] = useState(null);
-
-  // Estado para setup de 2FA
-  const [step, setStep] = useState('login'); // login | setup-scan | setup-verify | code
-  const [qrUrl, setQrUrl] = useState('');
-  const [setupSecret, setSetupSecret] = useState('');
-  const [setupCode, setSetupCode] = useState('');
-  const [code2FA, setCode2FA] = useState('');
-  const [error2FA, setError2FA] = useState('');
-  const [cargando2FA, setCargando2FA] = useState(false);
-  const [cargandoSetup, setCargandoSetup] = useState(false);
+  const [usuarioSMS, setUsuarioSMS] = useState(null);
+  const [otpCode, setOtpCode] = useState('');
+  const [errorOTP, setErrorOTP] = useState('');
+  const [cargandoOTP, setCargandoOTP] = useState(false);
+  const [smsEnviado, setSmsEnviado] = useState(false);
+  const [enviandoSMS, setEnviandoSMS] = useState(false);
+  const [countdown, setCountdown] = useState(0);
 
   useEffect(() => {
     const guardado = localStorage.getItem('login_email_recordado');
@@ -37,6 +32,13 @@ export default function Login() {
       setRecordar(true);
     }
   }, []);
+
+  // Countdown para reenviar SMS
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
 
   async function enviar(e) {
     e.preventDefault();
@@ -52,28 +54,21 @@ export default function Login() {
       }
 
       if (resultado.requires2FA) {
-        const deviceKey = `2fa_verified_${resultado.usuario.id}`;
+        const deviceKey = `sms_verified_${resultado.usuario.id}`;
         if (localStorage.getItem(deviceKey)) {
-          // Dispositivo ya verificado — saltar 2FA
-          await completeLoginWithCode(resultado.tempToken, resultado.usuario, 'skip');
-        } else if (!resultado.twoFactorEnabled) {
-          // Primer login — forzar setup de 2FA
+          // Dispositivo ya verificado — pedir código directamente
           setRequires2FA(true);
-          setTwoFactorEnabled(false);
           setTempToken(resultado.tempToken);
-          setUsuario2FA(resultado.usuario);
-          setStep('setup-scan');
-          iniciarSetup(resultado.tempToken);
+          setUsuarioSMS(resultado.usuario);
+          // Enviar SMS automáticamente
+          enviarSMS(resultado.tempToken);
         } else {
-          // 2FA ya habilitado — pedir código
+          // Primer login — mostrar pantalla SMS
           setRequires2FA(true);
-          setTwoFactorEnabled(true);
           setTempToken(resultado.tempToken);
-          setUsuario2FA(resultado.usuario);
-          setStep('code');
+          setUsuarioSMS(resultado.usuario);
+          enviarSMS(resultado.tempToken);
         }
-      } else {
-        navigate('/admin');
       }
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo iniciar sesión.');
@@ -82,67 +77,50 @@ export default function Login() {
     }
   }
 
-  async function iniciarSetup(token) {
-    setCargandoSetup(true);
+  async function enviarSMS(token) {
+    setEnviandoSMS(true);
+    setErrorOTP('');
     try {
-      const { data } = await api.post('/2fa/setup', null, {
+      await api.post('/otp/enviar', null, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setQrUrl(data.otpauthUrl);
-      setSetupSecret(data.secret);
+      setSmsEnviado(true);
+      setCountdown(60); // 60 segundos para reenviar
     } catch (err) {
-      setError2FA('Error al configurar 2FA. Intenta de nuevo.');
+      setErrorOTP(err.response?.data?.error || 'Error al enviar el SMS.');
     } finally {
-      setCargandoSetup(false);
+      setEnviandoSMS(false);
     }
   }
 
-  async function enviarSetup(e) {
+  async function reenviarSMS() {
+    if (countdown > 0) return;
+    await enviarSMS(tempToken);
+    setOtpCode('');
+  }
+
+  async function validarCodigo(e) {
     e.preventDefault();
-    setError2FA('');
-    setCargando2FA(true);
+    setErrorOTP('');
+    setCargandoOTP(true);
     try {
-      const { data } = await api.post('/2fa/verify', { code: setupCode }, {
-        headers: { Authorization: `Bearer ${tempToken}` },
-      });
+      const { data } = await api.post('/otp/validar', { token: tempToken, codigo: otpCode });
 
       // Marcar dispositivo como verificado
-      const deviceKey = `2fa_verified_${usuario2FA.id}`;
+      const deviceKey = `sms_verified_${usuarioSMS.id}`;
       localStorage.setItem(deviceKey, 'true');
 
       await complete2FALogin(data.fullToken, data.usuario);
       navigate('/admin');
     } catch (err) {
-      setError2FA(err.response?.data?.error || 'Código incorrecto. Intenta de nuevo.');
+      setErrorOTP(err.response?.data?.error || 'Código incorrecto.');
+      setOtpCode('');
     } finally {
-      setCargando2FA(false);
+      setCargandoOTP(false);
     }
   }
 
-  async function completeLoginWithCode(token, usuarioData, code) {
-    try {
-      const { data } = await api.post('/2fa/validate', { token, code });
-      const deviceKey = `2fa_verified_${usuarioData.id}`;
-      localStorage.setItem(deviceKey, 'true');
-      await complete2FALogin(data.fullToken, data.usuario);
-      navigate('/admin');
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async function enviar2FA(e) {
-    e.preventDefault();
-    setError2FA('');
-    setCargando2FA(true);
-    try {
-      await completeLoginWithCode(tempToken, usuario2FA, code2FA);
-    } catch (err) {
-      setError2FA(err.response?.data?.error || 'Código incorrecto. Intenta de nuevo.');
-    } finally {
-      setCargando2FA(false);
-    }
-  }
+  const phoneLast4 = usuarioSMS?.telefono ? usuarioSMS.telefono.slice(-4) : '';
 
   return (
     <div className="min-h-screen bg-ink flex items-center justify-center px-5">
@@ -161,8 +139,7 @@ export default function Login() {
         </p>
 
         <AnimatePresence mode="wait">
-          {/* Formulario de login */}
-          {step === 'login' && (
+          {!requires2FA ? (
             <motion.form
               key="login-form"
               onSubmit={enviar}
@@ -212,12 +189,10 @@ export default function Login() {
                 {cargando ? 'Ingresando…' : 'Ingresar'}
               </button>
             </motion.form>
-          )}
-
-          {/* Setup: escanear QR */}
-          {step === 'setup-scan' && (
-            <motion.div
-              key="setup-scan"
+          ) : (
+            <motion.form
+              key="otp-form"
+              onSubmit={validarCodigo}
               className="bg-paper rounded-2xl p-6 space-y-4"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -227,68 +202,27 @@ export default function Login() {
               <div className="text-center mb-2">
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-azul/10 mb-3">
                   <svg className="w-7 h-7 text-azul" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h2 className="font-display text-lg text-ink">Configurar seguridad</h2>
+                <h2 className="font-display text-lg text-ink">Verificación por SMS</h2>
                 <p className="text-sm text-ink/50 mt-1">
-                  Escanea este código QR con Google Authenticator o Authy
+                  Enviamos un código de 6 dígitos al número terminado en <strong>****{phoneLast4}</strong>
                 </p>
               </div>
 
-              {cargandoSetup ? (
-                <div className="flex justify-center py-8">
-                  <div className="w-8 h-8 border-2 border-azul border-t-transparent rounded-full animate-spin" />
+              {smsEnviado && (
+                <div className="bg-verde/5 border border-verde/20 rounded-xl p-3 text-center">
+                  <p className="text-xs text-verde font-medium">✓ Código enviado correctamente</p>
                 </div>
-              ) : (
-                <>
-                  <div className="flex justify-center">
-                    <div className="bg-white p-3 rounded-xl border border-line">
-                      <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}`}
-                        alt="QR Code para 2FA"
-                        className="w-48 h-48"
-                      />
-                    </div>
-                  </div>
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
-                    <p className="text-xs text-amber-700 font-medium">Código de respaldo:</p>
-                    <p className="text-sm font-mono font-bold text-amber-800 mt-1 tracking-wider">{setupSecret}</p>
-                    <p className="text-xs text-amber-600 mt-1">Guárdalo en un lugar seguro</p>
-                  </div>
-                  <button
-                    onClick={() => setStep('setup-verify')}
-                    className="btn-gold w-full"
-                  >
-                    Siguiente →
-                  </button>
-                </>
               )}
-            </motion.div>
-          )}
 
-          {/* Setup: verificar código */}
-          {step === 'setup-verify' && (
-            <motion.form
-              key="setup-verify"
-              onSubmit={enviarSetup}
-              className="bg-paper rounded-2xl p-6 space-y-4"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.25 }}
-            >
-              <div className="text-center mb-2">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-verde/10 mb-3">
-                  <svg className="w-7 h-7 text-verde" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+              {enviandoSMS && (
+                <div className="flex justify-center py-2">
+                  <div className="w-6 h-6 border-2 border-azul border-t-transparent rounded-full animate-spin" />
                 </div>
-                <h2 className="font-display text-lg text-ink">Verificar configuración</h2>
-                <p className="text-sm text-ink/50 mt-1">
-                  Abre Google Authenticator y escribe el código de 6 dígitos
-                </p>
-              </div>
+              )}
+
               <div>
                 <label className="label">Código de verificación</label>
                 <input
@@ -299,69 +233,37 @@ export default function Login() {
                   maxLength={6}
                   className="input text-center text-lg tracking-[0.5em] font-mono"
                   placeholder="000000"
-                  value={setupCode}
-                  onChange={(e) => setSetupCode(e.target.value.replace(/\D/g, ''))}
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                   autoFocus
+                  disabled={enviandoSMS}
                 />
               </div>
-              {error2FA && <p className="text-rojo text-sm">{error2FA}</p>}
-              <button type="submit" disabled={cargando2FA || setupCode.length !== 6} className="btn-gold w-full disabled:opacity-60">
-                {cargando2FA ? 'Verificando…' : 'Activar y entrar'}
+
+              {errorOTP && <p className="text-rojo text-sm">{errorOTP}</p>}
+
+              <button type="submit" disabled={cargandoOTP || otpCode.length !== 6 || enviandoSMS} className="btn-gold w-full disabled:opacity-60">
+                {cargandoOTP ? 'Verificando…' : 'Verificar'}
               </button>
+
               <button
                 type="button"
-                onClick={() => { setStep('setup-scan'); setSetupCode(''); setError2FA(''); }}
-                className="w-full text-center text-sm text-ink/50 hover:text-ink/80 py-1"
+                onClick={reenviarSMS}
+                disabled={countdown > 0 || enviandoSMS}
+                className="w-full text-center text-sm text-azul hover:text-azul/80 py-1 disabled:text-ink/30 disabled:cursor-not-allowed"
               >
-                ← Volver al QR
+                {countdown > 0 ? `Reenviar código en ${countdown}s` : 'Reenviar código'}
               </button>
-            </motion.form>
-          )}
 
-          {/* Código 2FA (ya habilitado) */}
-          {step === 'code' && (
-            <motion.form
-              key="twofa-form"
-              onSubmit={enviar2FA}
-              className="bg-paper rounded-2xl p-6 space-y-4"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.25 }}
-            >
-              <div className="text-center mb-2">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gold/10 mb-3">
-                  <svg className="w-7 h-7 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <h2 className="font-display text-lg text-ink">Verificación de seguridad</h2>
-                <p className="text-sm text-ink/50 mt-1">
-                  Ingresa el código de 6 dígitos de tu aplicación de autenticación
-                </p>
-              </div>
-              <div>
-                <label className="label">Código de verificación</label>
-                <input
-                  required
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]{6}"
-                  maxLength={6}
-                  className="input text-center text-lg tracking-[0.5em] font-mono"
-                  placeholder="000000"
-                  value={code2FA}
-                  onChange={(e) => setCode2FA(e.target.value.replace(/\D/g, ''))}
-                  autoFocus
-                />
-              </div>
-              {error2FA && <p className="text-rojo text-sm">{error2FA}</p>}
-              <button type="submit" disabled={cargando2FA || code2FA.length !== 6} className="btn-gold w-full disabled:opacity-60">
-                {cargando2FA ? 'Verificando…' : 'Verificar'}
-              </button>
               <button
                 type="button"
-                onClick={() => { setStep('login'); setRequires2FA(false); setCode2FA(''); setError2FA(''); }}
+                onClick={() => {
+                  setRequires2FA(false);
+                  setSmsEnviado(false);
+                  setOtpCode('');
+                  setErrorOTP('');
+                  setCountdown(0);
+                }}
                 className="w-full text-center text-sm text-ink/50 hover:text-ink/80 py-1"
               >
                 ← Volver al inicio de sesión
