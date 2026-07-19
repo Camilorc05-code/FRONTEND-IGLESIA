@@ -9,6 +9,9 @@ const TIPOS = [
   { value: 'gasto', label: 'Gasto', color: '#dc2626' },
 ];
 
+const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const ANIOS = Array.from({ length: 6 }, (_, i) => new Date().getFullYear() - 2 + i);
+
 const METODOS = ['Efectivo', 'Transferencia', 'Nequi', 'Daviplata', 'Otro'];
 
 function formatMoney(n) {
@@ -40,8 +43,18 @@ export default function Contabilidad() {
   const [personaBusqueda, setPersonaBusqueda] = useState('');
   const [showPersonaDropdown, setShowPersonaDropdown] = useState(false);
   const personaRef = useRef(null);
+  const ahora = new Date();
+  const [mesSeleccionado, setMesSeleccionado] = useState(ahora.getMonth() + 1);
+  const [anioSeleccionado, setAnioSeleccionado] = useState(ahora.getFullYear());
 
   useEffect(() => { cargarResumen(); cargarPersonas(); }, []);
+  useEffect(() => { cargarResumen(); setPagina(1); }, [mesSeleccionado, anioSeleccionado]);
+  useEffect(() => {
+    const desde = `${anioSeleccionado}-${String(mesSeleccionado).padStart(2, '0')}-01`;
+    const lastDay = new Date(anioSeleccionado, mesSeleccionado, 0).getDate();
+    const hasta = `${anioSeleccionado}-${String(mesSeleccionado).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+    setFiltro((f) => ({ ...f, desde, hasta }));
+  }, [mesSeleccionado, anioSeleccionado]);
   useEffect(() => { cargarMovimientos(); }, [filtro, pagina]);
   useEffect(() => {
     function handleClickOutside(e) {
@@ -53,7 +66,7 @@ export default function Contabilidad() {
 
   async function cargarResumen() {
     try {
-      const { data } = await api.get('/contabilidad/resumen');
+      const { data } = await api.get('/contabilidad/resumen', { params: { mes: mesSeleccionado, anio: anioSeleccionado } });
       setResumen(data);
     } catch {}
   }
@@ -106,10 +119,36 @@ export default function Contabilidad() {
     } catch {}
   }
 
+  function cambiarMes(delta) {
+    let m = mesSeleccionado + delta;
+    let a = anioSeleccionado;
+    if (m < 1) { m = 12; a--; }
+    if (m > 12) { m = 1; a++; }
+    setMesSeleccionado(m);
+    setAnioSeleccionado(a);
+  }
+
+  async function descargarExcel() {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${api.defaults.baseURL}/contabilidad/excel?mes=${mesSeleccionado}&anio=${anioSeleccionado}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Error al descargar');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `contabilidad-${MESES[mesSeleccionado - 1]}-${anioSeleccionado}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {}
+  }
+
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="font-display text-2xl font-bold text-ink">Contabilidad</h1>
             <p className="text-ink/50 text-sm">Diezmos, ofrendas y gastos</p>
@@ -117,6 +156,39 @@ export default function Contabilidad() {
           <button onClick={() => setShowForm(!showForm)} className="btn-gold text-sm">
             {showForm ? 'Cancelar' : '+ Registrar'}
           </button>
+        </div>
+
+        {/* Selector de mes y año */}
+        <div className="bg-white rounded-xl border border-line p-4 mb-6">
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="flex items-center gap-2">
+              <button onClick={() => cambiarMes(-1)} className="w-8 h-8 rounded-full bg-paper2 hover:bg-azul/10 flex items-center justify-center text-azul text-sm font-bold transition-colors">←</button>
+              <select
+                className="input text-sm py-1.5 w-36 text-center font-medium"
+                value={mesSeleccionado}
+                onChange={(e) => setMesSeleccionado(Number(e.target.value))}
+              >
+                {MESES.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
+              </select>
+              <select
+                className="input text-sm py-1.5 w-24 text-center font-medium"
+                value={anioSeleccionado}
+                onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
+              >
+                {ANIOS.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+              <button onClick={() => cambiarMes(1)} className="w-8 h-8 rounded-full bg-paper2 hover:bg-azul/10 flex items-center justify-center text-azul text-sm font-bold transition-colors">→</button>
+            </div>
+            <button
+              onClick={() => { setMesSeleccionado(ahora.getMonth() + 1); setAnioSeleccionado(ahora.getFullYear()); }}
+              className="text-xs text-azul hover:underline"
+            >Mes actual</button>
+            <div className="flex-1" />
+            <button onClick={descargarExcel} className="btn-gold text-sm flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              Descargar Excel
+            </button>
+          </div>
         </div>
 
         {/* Resumen del mes */}
