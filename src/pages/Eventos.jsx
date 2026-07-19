@@ -73,8 +73,8 @@ export default function Eventos() {
 
   const todasFotos = (() => {
     const raw = eventos.flatMap((e) => [
-      ...(e.imagenUrl ? [e.imagenUrl] : []),
-      ...(e.imagenes || []).map((img) => img.url),
+      ...(e.imagenUrl ? [{ url: e.imagenUrl, position: e.imagenPosicion || '50% 50%' }] : []),
+      ...(e.imagenes || []).map((img) => ({ url: img.url, position: img.position || '50% 50%' })),
     ]);
     if (!fotosShuffled.current || fotosShuffled.current._len !== raw.length) {
       const arr = [...raw];
