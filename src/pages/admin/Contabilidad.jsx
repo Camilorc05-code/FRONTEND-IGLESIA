@@ -74,8 +74,8 @@ export default function Contabilidad() {
 
   async function cargarPersonas() {
     try {
-      const { data } = await api.get('/personas?activo=true');
-      setPersonas(Array.isArray(data) ? data : data.personas || []);
+      const { data } = await api.get('/personas?limit=500');
+      setPersonas(data.data || []);
     } catch {}
   }
 
