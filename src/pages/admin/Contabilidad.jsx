@@ -36,6 +36,7 @@ export default function Contabilidad() {
   const [pagina, setPagina] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
   const [showForm, setShowForm] = useState(false);
+  const [editandoId, setEditandoId] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [form, setForm] = useState({ tipo: 'diezmo', monto: '', personaId: '', nombreAnonimo: '', descripcion: '', metodoPago: 'Efectivo', fecha: new Date().toISOString().split('T')[0], notas: '' });
   const [error, setError] = useState('');
@@ -99,15 +100,46 @@ export default function Contabilidad() {
     try {
       const payload = { ...form, monto: parseMonto(form.monto) };
       if (!payload.personaId) payload.personaId = undefined;
-      await api.post('/contabilidad', payload);
-      setExito('Movimiento registrado correctamente.');
+      if (editandoId) {
+        await api.put(`/contabilidad/${editandoId}`, payload);
+        setExito('Movimiento actualizado correctamente.');
+      } else {
+        await api.post('/contabilidad', payload);
+        setExito('Movimiento registrado correctamente.');
+      }
       setShowForm(false);
+      setEditandoId(null);
       setForm({ tipo: 'diezmo', monto: '', personaId: '', nombreAnonimo: '', descripcion: '', metodoPago: 'Efectivo', fecha: new Date().toISOString().split('T')[0], notas: '' });
       setPersonaBusqueda('');
       cargarResumen();
       cargarMovimientos();
       setTimeout(() => setExito(''), 3000);
     } catch (err) { setError(err.response?.data?.error || 'Error al registrar.'); }
+  }
+
+  function editarMovimiento(m) {
+    setEditandoId(m.id);
+    setForm({
+      tipo: m.tipo,
+      monto: formatMontoInput(String(m.monto)),
+      personaId: m.personaId || '',
+      nombreAnonimo: m.nombreAnonimo || '',
+      descripcion: m.descripcion || '',
+      metodoPago: m.metodoPago || 'Efectivo',
+      fecha: m.fecha ? new Date(m.fecha).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      notas: m.notas || '',
+    });
+    setPersonaBusqueda('');
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelarEdicion() {
+    setEditandoId(null);
+    setShowForm(false);
+    setForm({ tipo: 'diezmo', monto: '', personaId: '', nombreAnonimo: '', descripcion: '', metodoPago: 'Efectivo', fecha: new Date().toISOString().split('T')[0], notas: '' });
+    setPersonaBusqueda('');
+    setError('');
   }
 
   async function eliminarMovimiento(id) {
@@ -153,8 +185,8 @@ export default function Contabilidad() {
             <h1 className="font-display text-2xl font-bold text-ink">Contabilidad</h1>
             <p className="text-ink/50 text-sm">Diezmos, ofrendas y gastos</p>
           </div>
-          <button onClick={() => setShowForm(!showForm)} className="btn-gold text-sm">
-            {showForm ? 'Cancelar' : '+ Registrar'}
+          <button onClick={() => editandoId ? cancelarEdicion() : setShowForm(!showForm)} className="btn-gold text-sm">
+            {showForm ? 'Cancelar' : editandoId ? 'Cancelar edición' : '+ Registrar'}
           </button>
         </div>
 
@@ -235,7 +267,7 @@ export default function Contabilidad() {
             onSubmit={registrarMovimiento}
             className="bg-white rounded-xl border border-line p-5 space-y-4 mb-6"
           >
-            <h3 className="font-display font-semibold text-ink">Nuevo registro</h3>
+            <h3 className="font-display font-semibold text-ink">{editandoId ? 'Editar registro' : 'Nuevo registro'}</h3>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -347,7 +379,7 @@ export default function Contabilidad() {
             {error && <p className="text-rojo text-sm">{error}</p>}
             {exito && <p className="text-verde text-sm">{exito}</p>}
 
-            <button type="submit" className="btn-gold w-full">Registrar movimiento</button>
+            <button type="submit" className="btn-gold w-full">{editandoId ? 'Guardar cambios' : 'Registrar movimiento'}</button>
           </motion.form>
         )}
 
@@ -403,7 +435,8 @@ export default function Contabilidad() {
                       <span className={`text-sm font-bold ${m.tipo === 'gasto' ? 'text-rojo' : 'text-verde'}`}>
                         {m.tipo === 'gasto' ? '-' : '+'}{formatMoney(m.monto)}
                       </span>
-                      <button onClick={() => eliminarMovimiento(m.id)} className="text-ink/30 hover:text-rojo text-xs">✕</button>
+                      <button onClick={() => editarMovimiento(m)} className="text-ink/30 hover:text-azul text-xs" title="Editar">✎</button>
+                      <button onClick={() => eliminarMovimiento(m.id)} className="text-ink/30 hover:text-rojo text-xs" title="Eliminar">✕</button>
                     </div>
                   </div>
                 );
