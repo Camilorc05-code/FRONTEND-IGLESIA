@@ -104,7 +104,7 @@ export default function Horarios() {
                                 src={s.imagenUrl || s.imagenes?.[0]?.url}
                                 alt={s.nombre}
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                style={{ objectPosition: s.imagenPosicion || 'center center' }}
+                                style={{ objectPosition: s.imagenPosicion || '50% 50%' }}
                               />
                             </div>
                           )}

@@ -17,7 +17,7 @@ function TarjetaEvento({ e }) {
       <Link to={`/eventos/${e.id}`} className="block">
         <div className="overflow-hidden h-52 sm:h-56 md:h-60 relative">
           {e.imagenUrl ? (
-            <img src={e.imagenUrl} alt={e.titulo} className="w-full h-52 sm:h-56 md:h-60 object-cover transition-transform duration-500 group-hover:scale-110" style={{ objectPosition: e.imagenPosicion || 'center center' }} />
+            <img src={e.imagenUrl} alt={e.titulo} className="w-full h-52 sm:h-56 md:h-60 object-cover transition-transform duration-500 group-hover:scale-110" style={{ objectPosition: e.imagenPosicion || '50% 50%' }} />
           ) : (
             <PlaceholderEvento categoria={e.categoria} className="w-full h-52 sm:h-56 md:h-60 transition-transform duration-500 group-hover:scale-110" />
           )}

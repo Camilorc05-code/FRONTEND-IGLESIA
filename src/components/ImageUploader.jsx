@@ -2,16 +2,111 @@ import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../api/client';
 
-const POSICIONES = [
-  { value: 'center center', label: 'Centro' },
-  { value: 'center top', label: 'Arriba' },
-  { value: 'center bottom', label: 'Abajo' },
-  { value: 'left center', label: 'Izquierda' },
-  { value: 'right center', label: 'Derecha' },
-  { value: 'left top', label: 'Sup. Izq.' },
-  { value: 'right top', label: 'Sup. Der.' },
-  { value: 'left bottom', label: 'Inf. Izq.' },
-  { value: 'right bottom', label: 'Inf. Der.' },
+/**
+ * ImagePositioner: permite arrastrar una imagen dentro de un marco
+ * para elegir qué parte se ve. Guarda la posición como object-position %.
+ */
+function ImagePositioner({ imagen, posicion = '50% 50%', onPosicionChange }) {
+  const contenedorRef = useRef(null);
+  const [arrastrando, setArrastrando] = useState(false);
+  const [inicio, setInicio] = useState({ x: 0, y: 0 });
+  const [posActual, setPosActual] = useState(() => {
+    if (!posicion || posicion === 'center center') return { x: 50, y: 50 };
+    const [x, y] = posicion.split(' ').map((v) => {
+      if (v === 'left') return 0;
+      if (v === 'right') return 100;
+      if (v === 'top') return 0;
+      if (v === 'bottom') return 100;
+      return parseFloat(v) || 50;
+    });
+    return { x, y };
+  });
+
+  const iniciarArrastre = (e) => {
+    e.preventDefault();
+    setArrastrando(true);
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    setInicio({ x: clientX, y: clientY });
+  };
+
+  const mover = useCallback((e) => {
+    if (!arrastrando || !contenedorRef.current) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const rect = contenedorRef.current.getBoundingClientRect();
+    const dx = clientX - inicio.x;
+    const dy = clientY - inicio.y;
+    const pxX = (dx / rect.width) * 100;
+    const pxY = (dy / rect.height) * 100;
+    setPosActual((prev) => {
+      const nx = Math.max(0, Math.min(100, prev.x - pxX));
+      const ny = Math.max(0, Math.min(100, prev.y - pxY));
+      return { x: nx, y: ny };
+    });
+    setInicio({ x: clientX, y: clientY });
+  }, [arrastrando, inicio]);
+
+  const terminarArrastre = useCallback(() => {
+    if (!arrastrando) return;
+    setArrastrando(false);
+    if (onPosicionChange) {
+      onPosicionChange(`${posActual.x.toFixed(1)}% ${posActual.y.toFixed(1)}%`);
+    }
+  }, [arrastrando, posActual, onPosicionChange]);
+
+  return (
+    <div
+      ref={contenedorRef}
+      onMouseDown={iniciarArrastre}
+      onMouseMove={mover}
+      onMouseUp={terminarArrastre}
+      onMouseLeave={terminarArrastre}
+      onTouchStart={iniciarArrastre}
+      onTouchMove={mover}
+      onTouchEnd={terminarArrastre}
+      className="relative w-full h-40 rounded-xl overflow-hidden bg-ink/10 border-2 border-dashed cursor-grab active:cursor-grabbing select-none"
+      style={{ touchAction: 'none' }}
+    >
+      <img
+        src={imagen}
+        alt="Arrastra para posicionar"
+        className="w-full h-full pointer-events-none"
+        style={{
+          objectFit: 'cover',
+          objectPosition: `${posActual.x}% ${posActual.y}%`,
+          transform: arrastrando ? 'scale(1.02)' : 'scale(1)',
+          transition: arrastrando ? 'none' : 'transform 0.2s',
+        }}
+        draggable={false}
+      />
+      {/* Guía visual */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 border border-white/20" />
+        <div className="absolute left-1/3 top-0 bottom-0 border-l border-white/10" />
+        <div className="absolute left-2/3 top-0 bottom-0 border-l border-white/10" />
+        <div className="absolute top-1/3 left-0 right-0 border-t border-white/10" />
+        <div className="absolute top-2/3 left-0 right-0 border-t border-white/10" />
+      </div>
+      {/* Indicador de posición */}
+      <div className="absolute bottom-2 right-2 bg-ink/70 text-paper text-[10px] px-2 py-0.5 rounded-full backdrop-blur">
+        {arrastrando ? 'Soltar aquí' : 'Arrastra la imagen'}
+      </div>
+      {/* Cruz central */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 pointer-events-none">
+        <div className="absolute top-1/2 left-0 right-0 h-px bg-white/40" />
+        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/40" />
+      </div>
+    </div>
+  );
+}
+
+const POSICIONES_RAPIDAS = [
+  { value: '50% 50%', label: 'Centro' },
+  { value: '50% 0%', label: 'Arriba' },
+  { value: '50% 100%', label: 'Abajo' },
+  { value: '0% 50%', label: 'Izq.' },
+  { value: '100% 50%', label: 'Der.' },
 ];
 
 /**
@@ -217,9 +312,9 @@ export function ImageUploader({ imagenes = [], onChange, maximo = 20, label = 'I
 
 /**
  * Variante simplificada para subir UNA sola imagen (portada).
- * Muestra preview con opción de eliminar y selector de posición.
+ * Muestra preview con opción de eliminar y arrastrar para posicionar.
  */
-export function ImageUploaderSingle({ imagen = '', posicion = 'center center', onPosicionChange, onChange, label = 'Foto de portada' }) {
+export function ImageUploaderSingle({ imagen = '', posicion = '50% 50%', onPosicionChange, onChange, label = 'Foto de portada' }) {
   const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState('');
   const [dragActive, setDragActive] = useState(false);
@@ -278,7 +373,7 @@ export function ImageUploaderSingle({ imagen = '', posicion = 'center center', o
               </button>
               <button
                 type="button"
-                onClick={() => { onChange(''); if (onPosicionChange) onPosicionChange('center center'); }}
+                onClick={() => { onChange(''); if (onPosicionChange) onPosicionChange('50% 50%'); }}
                 className="px-3 py-1.5 rounded-full bg-rojo text-paper text-xs font-medium hover:bg-rojo/80 shadow-sm"
               >
                 Eliminar
@@ -287,24 +382,28 @@ export function ImageUploaderSingle({ imagen = '', posicion = 'center center', o
             <input ref={inputRef} type="file" accept="image/*" onChange={handleSelect} className="hidden" />
           </div>
 
-          {/* Selector de posición */}
+          {/* Arrastrar para posicionar */}
           {onPosicionChange && (
             <div>
-              <p className="text-xs text-ink/50 mb-2">Posición de la imagen (haz click donde quieras que se enfoque):</p>
-              <div className="grid grid-cols-3 gap-1 w-32">
-                {POSICIONES.map((pos) => (
+              <p className="text-xs text-ink/50 mb-2 font-medium">Arrastra la imagen para posicionarla como quieras:</p>
+              <ImagePositioner
+                imagen={imagen}
+                posicion={posicion}
+                onPosicionChange={onPosicionChange}
+              />
+              <div className="flex gap-1 mt-2">
+                {POSICIONES_RAPIDAS.map((pos) => (
                   <button
                     key={pos.value}
                     type="button"
                     onClick={() => onPosicionChange(pos.value)}
-                    title={pos.label}
-                    className={`w-10 h-7 rounded text-[9px] font-medium transition-all ${
+                    className={`px-2 py-1 rounded text-[10px] font-medium transition-all ${
                       posicion === pos.value
-                        ? 'bg-azul text-paper shadow-sm'
+                        ? 'bg-azul text-paper'
                         : 'bg-ink/5 text-ink/40 hover:bg-ink/10'
                     }`}
                   >
-                    {pos.label.slice(0, 3)}
+                    {pos.label}
                   </button>
                 ))}
               </div>
