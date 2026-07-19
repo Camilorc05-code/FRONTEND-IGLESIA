@@ -160,10 +160,11 @@ export default function Contabilidad() {
     setAnioSeleccionado(a);
   }
 
-  async function descargarExcel() {
+  async function descargarExcel(tipo = '') {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${api.defaults.baseURL}/contabilidad/excel?mes=${mesSeleccionado}&anio=${anioSeleccionado}`, {
+      const params = `mes=${mesSeleccionado}&anio=${anioSeleccionado}${tipo ? `&tipo=${tipo}` : ''}`;
+      const res = await fetch(`${api.defaults.baseURL}/contabilidad/excel?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Error al descargar');
@@ -171,11 +172,22 @@ export default function Contabilidad() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `contabilidad-${MESES[mesSeleccionado - 1]}-${anioSeleccionado}.xlsx`;
+      const nombreTipo = tipo ? TIPOS.find((t) => t.value === tipo)?.label || tipo : 'Todos';
+      a.download = `${nombreTipo}-${MESES[mesSeleccionado - 1]}-${anioSeleccionado}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {}
   }
+
+  const [showExcelMenu, setShowExcelMenu] = useState(false);
+  const excelMenuRef = useRef(null);
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (excelMenuRef.current && !excelMenuRef.current.contains(e.target)) setShowExcelMenu(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
@@ -216,10 +228,25 @@ export default function Contabilidad() {
               className="text-xs text-azul hover:underline"
             >Mes actual</button>
             <div className="flex-1" />
-            <button onClick={descargarExcel} className="btn-gold text-sm flex items-center gap-2">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-              Descargar Excel
-            </button>
+            <div className="relative" ref={excelMenuRef}>
+              <button onClick={() => setShowExcelMenu(!showExcelMenu)} className="btn-gold text-sm flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                Descargar Excel ▾
+              </button>
+              {showExcelMenu && (
+                <div className="absolute z-30 right-0 top-full mt-1 bg-white border border-line rounded-xl shadow-lg w-52 overflow-hidden">
+                  <button onClick={() => { descargarExcel(); setShowExcelMenu(false); }} className="w-full text-left px-4 py-2.5 text-sm hover:bg-paper2 text-ink font-medium border-b border-line">
+                    📊 Todos los tipos
+                  </button>
+                  {TIPOS.map((t) => (
+                    <button key={t.value} onClick={() => { descargarExcel(t.value); setShowExcelMenu(false); }} className="w-full text-left px-4 py-2.5 text-sm hover:bg-paper2 text-ink flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full shrink-0" style={{ background: t.color }} />
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
