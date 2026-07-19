@@ -23,6 +23,7 @@ import UsuariosAdmin from './pages/admin/UsuariosAdmin';
 import BebesAdmin from './pages/admin/BebesAdmin';
 import AuditLog from './pages/admin/AuditLog';
 import AsistenciaAdmin from './pages/admin/AsistenciaAdmin';
+import Seguridad from './pages/admin/Seguridad';
 import Donaciones from './pages/Donaciones';
 import VisitanteForm from './pages/VisitanteForm';
 import Redes from './pages/Redes';
@@ -82,6 +83,7 @@ export default function App() {
             <Route path="bebes" element={<BebesAdmin />} />
             <Route path="asistencia" element={<AsistenciaAdmin />} />
             <Route path="historial" element={<AuditLog />} />
+            <Route path="seguridad" element={<Seguridad />} />
           </Route>
 
           <Route path="*" element={<Inicio />} />

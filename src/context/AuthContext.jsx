@@ -18,11 +18,25 @@ export function AuthProvider({ children }) {
 
   async function login(email, password) {
     const { data } = await api.post('/auth/login', { email, password });
+
+    // Si requiere 2FA, no guardamos token aún
+    if (data.requires2FA) {
+      return { requires2FA: true, tempToken: data.tempToken, usuario: data.usuario };
+    }
+
+    // Login normal sin 2FA
     localStorage.setItem('token', data.token);
     localStorage.setItem('usuario', JSON.stringify(data.usuario));
     setUsuario(data.usuario);
     registrarPush().catch(() => {});
     return data.usuario;
+  }
+
+  async function complete2FALogin(fullToken, usuarioData) {
+    localStorage.setItem('token', fullToken);
+    localStorage.setItem('usuario', JSON.stringify(usuarioData));
+    setUsuario(usuarioData);
+    registrarPush().catch(() => {});
   }
 
   function logout() {
@@ -33,7 +47,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ usuario, login, logout }}>
+    <AuthContext.Provider value={{ usuario, login, complete2FALogin, logout }}>
       {children}
     </AuthContext.Provider>
   );

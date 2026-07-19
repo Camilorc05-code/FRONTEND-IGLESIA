@@ -5,6 +5,7 @@ import { Navbar, Footer } from './PublicLayout';
 import { PageTransition } from './PageTransition';
 import { ScrollProgress } from './ScrollProgress';
 import { BotonWhatsapp } from './BotonWhatsapp';
+import { ChatBot } from './ChatBot';
 
 export default function PublicShell() {
   const location = useLocation();
@@ -17,6 +18,7 @@ export default function PublicShell() {
     <div className="min-h-screen flex flex-col">
       <ScrollProgress />
       <BotonWhatsapp />
+      <ChatBot />
       <Navbar />
       <main className="flex-1">
         <AnimatePresence mode="wait">

@@ -16,6 +16,7 @@ const allItems = [
   { to: '/admin/usuarios', label: 'Usuarios', roles: ['ADMIN'] },
   { to: '/admin/asistencia', label: 'Asistencia', roles: ['ADMIN', 'PASTOR'] },
   { to: '/admin/historial', label: 'Historial', roles: ['ADMIN'] },
+  { to: '/admin/seguridad', label: 'Seguridad' },
 ];
 
 export function RutaProtegida({ children }) {
