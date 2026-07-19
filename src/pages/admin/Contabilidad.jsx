@@ -1,0 +1,271 @@
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { api } from '../../api/client';
+
+const TIPOS = [
+  { value: 'diezmo', label: 'Diezmo', color: '#024293' },
+  { value: 'ofrenda', label: 'Ofrenda', color: '#3E52C3' },
+  { value: 'donacion', label: 'Donación', color: '#16a34a' },
+  { value: 'gasto', label: 'Gasto', color: '#dc2626' },
+];
+
+const METODOS = ['Efectivo', 'Transferencia', 'Nequi', 'Daviplata', 'Otro'];
+
+function formatMoney(n) {
+  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+}
+
+export default function Contabilidad() {
+  const [movimientos, setMovimientos] = useState([]);
+  const [resumen, setResumen] = useState(null);
+  const [personas, setPersonas] = useState([]);
+  const [filtro, setFiltro] = useState({ tipo: '', desde: '', hasta: '' });
+  const [pagina, setPagina] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
+  const [showForm, setShowForm] = useState(false);
+  const [cargando, setCargando] = useState(true);
+  const [form, setForm] = useState({ tipo: 'diezmo', monto: '', personaId: '', nombreAnonimo: '', descripcion: '', metodoPago: 'Efectivo', fecha: new Date().toISOString().split('T')[0], notas: '' });
+  const [error, setError] = useState('');
+  const [exito, setExito] = useState('');
+
+  useEffect(() => { cargarResumen(); cargarPersonas(); }, []);
+  useEffect(() => { cargarMovimientos(); }, [filtro, pagina]);
+
+  async function cargarResumen() {
+    try {
+      const { data } = await api.get('/contabilidad/resumen');
+      setResumen(data);
+    } catch {}
+  }
+
+  async function cargarPersonas() {
+    try {
+      const { data } = await api.get('/personas?activo=true');
+      setPersonas(Array.isArray(data) ? data : data.personas || []);
+    } catch {}
+  }
+
+  async function cargarMovimientos() {
+    setCargando(true);
+    try {
+      const params = { page: pagina, limit: 20 };
+      if (filtro.tipo) params.tipo = filtro.tipo;
+      if (filtro.desde) params.desde = filtro.desde;
+      if (filtro.hasta) params.hasta = filtro.hasta;
+      const { data } = await api.get('/contabilidad', { params });
+      setMovimientos(data.movimientos || []);
+      setTotalPaginas(data.pages || 1);
+    } catch {} finally { setCargando(false); }
+  }
+
+  async function registrarMovimiento(e) {
+    e.preventDefault();
+    setError(''); setExito('');
+    if (!form.monto || Number(form.monto) <= 0) return setError('Ingresa un monto válido.');
+    if (form.tipo !== 'gasto' && !form.personaId && !form.nombreAnonimo) return setError('Selecciona una persona o escribe un nombre anónimo.');
+    try {
+      const payload = { ...form, monto: Number(form.monto) };
+      if (!payload.personaId) payload.personaId = undefined;
+      await api.post('/contabilidad', payload);
+      setExito('Movimiento registrado correctamente.');
+      setShowForm(false);
+      setForm({ tipo: 'diezmo', monto: '', personaId: '', nombreAnonimo: '', descripcion: '', metodoPago: 'Efectivo', fecha: new Date().toISOString().split('T')[0], notas: '' });
+      cargarResumen();
+      cargarMovimientos();
+      setTimeout(() => setExito(''), 3000);
+    } catch (err) { setError(err.response?.data?.error || 'Error al registrar.'); }
+  }
+
+  async function eliminarMovimiento(id) {
+    if (!confirm('¿Eliminar este registro?')) return;
+    try {
+      await api.delete(`/contabilidad/${id}`);
+      cargarMovimientos();
+      cargarResumen();
+    } catch {}
+  }
+
+  return (
+    <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="font-display text-2xl font-bold text-ink">Contabilidad</h1>
+            <p className="text-ink/50 text-sm">Diezmos, ofrendas y gastos</p>
+          </div>
+          <button onClick={() => setShowForm(!showForm)} className="btn-gold text-sm">
+            {showForm ? 'Cancelar' : '+ Registrar'}
+          </button>
+        </div>
+
+        {/* Resumen del mes */}
+        {resumen && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div className="bg-white rounded-xl border border-line p-4 text-center">
+              <p className="text-xs text-ink/50 mb-1">Diezmos</p>
+              <p className="text-lg font-bold text-azul">{formatMoney(resumen.diezmos.total)}</p>
+              <p className="text-[10px] text-ink/40">{resumen.diezmos.cantidad} registros</p>
+            </div>
+            <div className="bg-white rounded-xl border border-line p-4 text-center">
+              <p className="text-xs text-ink/50 mb-1">Ofrendas</p>
+              <p className="text-lg font-bold text-[#3E52C3]">{formatMoney(resumen.ofrendas.total)}</p>
+              <p className="text-[10px] text-ink/40">{resumen.ofrendas.cantidad} registros</p>
+            </div>
+            <div className="bg-white rounded-xl border border-line p-4 text-center">
+              <p className="text-xs text-ink/50 mb-1">Donaciones</p>
+              <p className="text-lg font-bold text-verde">{formatMoney(resumen.donaciones.total)}</p>
+              <p className="text-[10px] text-ink/40">{resumen.donaciones.cantidad} registros</p>
+            </div>
+            <div className="bg-white rounded-xl border border-line p-4 text-center">
+              <p className="text-xs text-ink/50 mb-1">Gastos</p>
+              <p className="text-lg font-bold text-rojo">{formatMoney(resumen.gastos.total)}</p>
+              <p className="text-[10px] text-ink/40">{resumen.gastos.cantidad} registros</p>
+            </div>
+          </div>
+        )}
+
+        {/* Balance */}
+        {resumen && (
+          <div className="bg-white rounded-xl border border-line p-4 mb-6 text-center">
+            <p className="text-xs text-ink/50 mb-1">Balance del mes</p>
+            <p className={`text-2xl font-bold ${resumen.balance >= 0 ? 'text-verde' : 'text-rojo'}`}>
+              {formatMoney(resumen.balance)}
+            </p>
+          </div>
+        )}
+
+        {/* Formulario */}
+        {showForm && (
+          <motion.form
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            onSubmit={registrarMovimiento}
+            className="bg-white rounded-xl border border-line p-5 space-y-4 mb-6"
+          >
+            <h3 className="font-display font-semibold text-ink">Nuevo registro</h3>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">Tipo</label>
+                <select className="input" value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })}>
+                  {TIPOS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="label">Monto ($)</label>
+                <input type="number" className="input" placeholder="0" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} required min="1" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">Persona (miembro)</label>
+                <select className="input" value={form.personaId} onChange={(e) => setForm({ ...form, personaId: e.target.value, nombreAnonimo: '' })}>
+                  <option value="">— Seleccionar —</option>
+                  {personas.map((p) => <option key={p.id} value={p.id}>{p.nombres} {p.apellidos}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="label">O nombre anónimo/externo</label>
+                <input type="text" className="input" placeholder="Anónimo / Nombre" value={form.nombreAnonimo} onChange={(e) => setForm({ ...form, nombreAnonimo: e.target.value, personaId: '' })} disabled={!!form.personaId} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">Método de pago</label>
+                <select className="input" value={form.metodoPago} onChange={(e) => setForm({ ...form, metodoPago: e.target.value })}>
+                  {METODOS.map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="label">Fecha</label>
+                <input type="date" className="input" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
+              </div>
+            </div>
+
+            <div>
+              <label className="label">Descripción (opcional)</label>
+              <input type="text" className="input" placeholder="Ej: Ofrenda domingo 20 julio" value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} />
+            </div>
+
+            {error && <p className="text-rojo text-sm">{error}</p>}
+            {exito && <p className="text-verde text-sm">{exito}</p>}
+
+            <button type="submit" className="btn-gold w-full">Registrar movimiento</button>
+          </motion.form>
+        )}
+
+        {exito && !showForm && <p className="text-verde text-sm text-center">{exito}</p>}
+
+        {/* Filtros */}
+        <div className="bg-white rounded-xl border border-line p-4 mb-4">
+          <div className="flex flex-wrap gap-3 items-end">
+            <div>
+              <label className="label">Tipo</label>
+              <select className="input" value={filtro.tipo} onChange={(e) => { setFiltro({ ...filtro, tipo: e.target.value }); setPagina(1); }}>
+                <option value="">Todos</option>
+                {TIPOS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="label">Desde</label>
+              <input type="date" className="input" value={filtro.desde} onChange={(e) => { setFiltro({ ...filtro, desde: e.target.value }); setPagina(1); }} />
+            </div>
+            <div>
+              <label className="label">Hasta</label>
+              <input type="date" className="input" value={filtro.hasta} onChange={(e) => { setFiltro({ ...filtro, hasta: e.target.value }); setPagina(1); }} />
+            </div>
+            <button onClick={() => { setFiltro({ tipo: '', desde: '', hasta: '' }); setPagina(1); }} className="text-sm text-azul hover:underline pb-1">Limpiar</button>
+          </div>
+        </div>
+
+        {/* Lista de movimientos */}
+        <div className="bg-white rounded-xl border border-line overflow-hidden">
+          {cargando ? (
+            <div className="p-8 text-center text-ink/40">Cargando…</div>
+          ) : movimientos.length === 0 ? (
+            <div className="p-8 text-center text-ink/40">No hay registros</div>
+          ) : (
+            <div className="divide-y divide-line">
+              {movimientos.map((m) => {
+                const tipoInfo = TIPOS.find((t) => t.value === m.tipo) || TIPOS[0];
+                const nombre = m.persona ? `${m.persona.nombres} ${m.persona.apellidos}` : m.nombreAnonimo || 'Anónimo';
+                return (
+                  <div key={m.id} className="flex items-center justify-between px-4 py-3 hover:bg-paper2/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-8 rounded-full shrink-0" style={{ background: tipoInfo.color }} />
+                      <div>
+                        <p className="text-sm font-medium text-ink">{nombre}</p>
+                        <p className="text-xs text-ink/40">
+                          {tipoInfo.label} — {new Date(m.fecha).toLocaleDateString('es-CO')}
+                          {m.metodoPago ? ` — ${m.metodoPago}` : ''}
+                          {m.descripcion ? ` — ${m.descripcion}` : ''}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-sm font-bold ${m.tipo === 'gasto' ? 'text-rojo' : 'text-verde'}`}>
+                        {m.tipo === 'gasto' ? '-' : '+'}{formatMoney(m.monto)}
+                      </span>
+                      <button onClick={() => eliminarMovimiento(m.id)} className="text-ink/30 hover:text-rojo text-xs">✕</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Paginación */}
+          {totalPaginas > 1 && (
+            <div className="flex justify-center gap-2 p-3 border-t border-line">
+              <button onClick={() => setPagina(Math.max(1, pagina - 1))} disabled={pagina === 1} className="text-sm text-azul disabled:text-ink/30">← Anterior</button>
+              <span className="text-sm text-ink/40">{pagina} / {totalPaginas}</span>
+              <button onClick={() => setPagina(Math.min(totalPaginas, pagina + 1))} disabled={pagina === totalPaginas} className="text-sm text-azul disabled:text-ink/30">Siguiente →</button>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
