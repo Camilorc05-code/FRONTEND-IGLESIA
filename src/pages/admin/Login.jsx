@@ -111,33 +111,22 @@ export default function Login() {
     if (countdown > 0) return;
     setOtpCode('');
     setErrorOTP('');
-    // Intentar reenviar con el token actual
+    setEnviandoEmail(true);
     try {
-      await api.post('/otp/enviar', null, {
-        headers: { Authorization: `Bearer ${tempToken}` },
-      });
-      setEmailEnviado(true);
-      setCountdown(60);
-    } catch (err) {
-      // Si el token expiró, obtener uno nuevo
-      if (err.response?.status === 401 || err.response?.data?.code === 'TOKEN_EXPIRED') {
-        try {
-          const { data: nuevoLogin } = await api.post('/auth/login', { email, password });
-          if (nuevoLogin.tempToken) {
-            setTempToken(nuevoLogin.tempToken);
-            await api.post('/otp/enviar', null, {
-              headers: { Authorization: `Bearer ${nuevoLogin.tempToken}` },
-            });
-            setEmailEnviado(true);
-            setCountdown(60);
-            setErrorOTP('Se envió un nuevo código a tu correo.');
-          }
-        } catch {
-          setErrorOTP('Tu sesión expiró. Inicia sesión de nuevo.');
-        }
-      } else {
-        setErrorOTP(err.response?.data?.error || 'Error al reenviar código.');
+      // Siempre hacer login de nuevo para obtener token fresco
+      const { data: nuevoLogin } = await api.post('/auth/login', { email, password });
+      if (nuevoLogin.tempToken) {
+        setTempToken(nuevoLogin.tempToken);
+        await api.post('/otp/enviar', null, {
+          headers: { Authorization: `Bearer ${nuevoLogin.tempToken}` },
+        });
+        setEmailEnviado(true);
+        setCountdown(60);
       }
+    } catch (err) {
+      setErrorOTP(err.response?.data?.error || 'Error al enviar código. Intenta de nuevo.');
+    } finally {
+      setEnviandoEmail(false);
     }
   }
 
@@ -319,7 +308,7 @@ export default function Login() {
                 disabled={countdown > 0 || enviandoEmail}
                 className="w-full text-center text-sm text-azul hover:text-azul/80 py-1 disabled:text-ink/30 disabled:cursor-not-allowed"
               >
-                {countdown > 0 ? `Reenviar código en ${countdown}s` : 'Reenviar código'}
+                {enviandoEmail ? 'Enviando código…' : countdown > 0 ? `Reenviar código en ${countdown}s` : 'Reenviar código'}
               </button>
 
               <button
