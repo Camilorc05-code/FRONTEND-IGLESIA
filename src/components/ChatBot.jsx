@@ -21,7 +21,19 @@ const KB = [
   },
   {
     intents: ['evento', 'eventos', 'qué hay', 'proximo', 'próximo', 'actividad', 'actividades', 'reunion especial'],
-    reply: () => ({ text: 'Tenemos eventos increíbles cada semana. Puedes ver todos los próximos eventos con sus fechas y detalles en nuestra página.', link: '/eventos', linkLabel: 'Ver eventos' }),
+    reply: (ctx) => {
+      if (!ctx.eventos || ctx.eventos.length === 0) {
+        return { text: 'No hay eventos próximos programados en este momento. Puedes revisar la página de eventos para más información.', link: '/eventos', linkLabel: 'Ver eventos' };
+      }
+      const lines = ctx.eventos.slice(0, 5).map((e) => {
+        const fecha = new Date(e.fecha).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
+        const hora = e.horaInicio ? ` a las ${e.horaInicio}` : '';
+        const lugar = e.lugar ? ` — ${e.lugar}` : '';
+        return `• ${e.titulo}\n  📅 ${fecha}${hora}${lugar}`;
+      });
+      const extra = ctx.eventos.length > 5 ? `\n\n... y ${ctx.eventos.length - 5} evento(s) más` : '';
+      return { text: `Estos son nuestros próximos eventos:\n\n${lines.join('\n\n')}${extra}`, link: '/eventos', linkLabel: 'Ver todos los eventos' };
+    },
   },
   {
     intents: ['cita', 'cita pastoral', 'pastor', 'hablar con', 'conversar', 'orientación', 'consejería', 'necesito hablar'],
@@ -220,6 +232,7 @@ export function ChatBot() {
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
   const [servicios, setServicios] = useState(null);
+  const [eventos, setEventos] = useState(null);
   const [conversationHistory, setConversationHistory] = useState([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -233,11 +246,15 @@ export function ChatBot() {
     scrollToBottom();
   }, [messages, typing, scrollToBottom]);
 
-  // Load real services from API
+  // Load real services and events from API
   useEffect(() => {
     fetch(`${API_URL}/api/servicios`)
       .then((r) => r.json())
       .then((data) => setServicios(data))
+      .catch(() => {});
+    fetch(`${API_URL}/api/eventos?tipo=proximos`)
+      .then((r) => r.json())
+      .then((data) => setEventos(data))
       .catch(() => {});
   }, []);
 
@@ -264,7 +281,7 @@ export function ChatBot() {
     setTyping(true);
 
     setTimeout(() => {
-      const ctx = { servicios, history: conversationHistory };
+      const ctx = { servicios, eventos, history: conversationHistory };
       const reply = generateReply(msgText, ctx);
 
       setTyping(false);
