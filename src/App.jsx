@@ -1,6 +1,8 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { IntroSplash } from './components/IntroSplash';
+import PageLoader from './components/PageLoader';
 
 import PublicShell from './components/PublicShell';
 import Inicio from './pages/Inicio';
@@ -26,9 +28,19 @@ import VisitanteForm from './pages/VisitanteForm';
 import Redes from './pages/Redes';
 import Checkin from './pages/Checkin';
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
+      <PageLoader />
       <IntroSplash />
       <AuthProvider>
         <Routes>

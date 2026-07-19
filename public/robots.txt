@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /checkin
+
+Sitemap: https://misionpanamericana.vercel.app/sitemap.xml
