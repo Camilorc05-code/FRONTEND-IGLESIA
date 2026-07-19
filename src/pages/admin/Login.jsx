@@ -53,6 +53,27 @@ export default function Login() {
       }
 
       if (resultado.requires2FA) {
+        // Verificar si este dispositivo ya tiene un token guardado
+        const deviceTokenKey = `device_token_${resultado.usuario.id}`;
+        const storedToken = localStorage.getItem(deviceTokenKey);
+
+        if (storedToken) {
+          // Intentar usar el token guardado
+          try {
+            const { data } = await api.get('/auth/me', {
+              headers: { Authorization: `Bearer ${storedToken}` },
+            });
+            // Token sigue válido — entrar directo
+            await complete2FALogin(storedToken, data);
+            navigate('/admin');
+            return;
+          } catch {
+            // Token expirado — limpiar y pedir código
+            localStorage.removeItem(deviceTokenKey);
+          }
+        }
+
+        // Dispositivo nuevo o token expirado — mostrar pantalla de código
         setRequires2FA(true);
         setTempToken(resultado.tempToken);
         setUsuarioOTP(resultado.usuario);
@@ -94,8 +115,9 @@ export default function Login() {
     try {
       const { data } = await api.post('/otp/validar', { token: tempToken, codigo: otpCode });
 
-      const deviceKey = `email_verified_${usuarioOTP.id}`;
-      localStorage.setItem(deviceKey, 'true');
+      // Guardar token en este dispositivo para no pedir código de nuevo
+      const deviceTokenKey = `device_token_${usuarioOTP.id}`;
+      localStorage.setItem(deviceTokenKey, data.fullToken);
 
       await complete2FALogin(data.fullToken, data.usuario);
       navigate('/admin');
@@ -106,6 +128,10 @@ export default function Login() {
       setCargandoOTP(false);
     }
   }
+
+  const maskedEmail = usuarioOTP?.email
+    ? usuarioOTP.email.replace(/(.{2})(.*)(@.*)/, '$1***$3')
+    : '';
 
   return (
     <div className="min-h-screen bg-ink flex items-center justify-center px-5">
@@ -193,7 +219,7 @@ export default function Login() {
                 <h2 className="font-display text-lg text-ink">Verificación por correo</h2>
                 <p className="text-sm text-ink/50 mt-1">
                   Enviamos un código de 6 dígitos a<br />
-                  <strong>{usuarioOTP?.email}</strong>
+                  <strong>{maskedEmail}</strong>
                 </p>
               </div>
 
