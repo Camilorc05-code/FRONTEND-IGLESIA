@@ -9,8 +9,9 @@ export const api = axios.create({
 
 // Adjunta el token JWT (si existe) a cada petición
 api.interceptors.request.use((config) => {
-  // No enviar token en login (evita 401 que limpia todo antes del flujo 2FA)
-  if (config.url?.includes('/auth/login')) {
+  // No enviar token en login ni OTP
+  const url = config.url || '';
+  if (url.includes('/auth/login') || url.includes('/otp/')) {
     return config;
   }
   const token = localStorage.getItem('token');
@@ -24,10 +25,10 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    // No redirigir en login, OTP, o si no hay token guardado
     const url = err.config?.url || '';
     const hasToken = localStorage.getItem('token');
-    if (err.response?.status === 401 && hasToken && !url.includes('/auth/login') && !url.includes('/otp/')) {
+    // Solo cerrar sesión si hay token Y no es login ni OTP
+    if (err.response?.status === 401 && hasToken && !url.includes('/auth/login') && !url.includes('/otp/') && !url.includes('/citas/auto-recordatorios')) {
       localStorage.removeItem('token');
       localStorage.removeItem('usuario');
       window.location.href = '/admin/login';

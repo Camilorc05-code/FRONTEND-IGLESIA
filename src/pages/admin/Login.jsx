@@ -44,9 +44,15 @@ export default function Login() {
     setError('');
     setCargando(true);
     try {
-      // Limpiar tokens viejos que puedan causar conflictos
-      localStorage.removeItem('token');
-      localStorage.removeItem('usuario');
+      // Limpiar TODOS los tokens viejos del navegador
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('device_token_') || key === 'token' || key === 'usuario')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
 
       const resultado = await login(email, password);
 
@@ -117,7 +123,17 @@ export default function Login() {
     setErrorOTP('');
     setEnviandoEmail(true);
     try {
-      // Siempre hacer login de nuevo para obtener token fresco
+      // Limpiar tokens viejos antes de reintentar
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('device_token_') || key === 'token' || key === 'usuario')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+
+      // Hacer login de nuevo para obtener token fresco
       const { data: nuevoLogin } = await api.post('/auth/login', { email, password });
       if (nuevoLogin.tempToken) {
         setTempToken(nuevoLogin.tempToken);
