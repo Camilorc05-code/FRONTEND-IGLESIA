@@ -44,6 +44,10 @@ export default function Login() {
     setError('');
     setCargando(true);
     try {
+      // Limpiar tokens viejos que puedan causar conflictos
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario');
+
       const resultado = await login(email, password);
 
       if (recordar) {
@@ -331,6 +335,16 @@ export default function Login() {
         <Link to="/" className="block text-center text-paper/40 text-sm mt-6 hover:text-paper/70">
           ← Volver al sitio público
         </Link>
+
+        <button
+          onClick={() => {
+            localStorage.clear();
+            window.location.reload();
+          }}
+          className="block mx-auto text-center text-paper/30 text-xs mt-3 hover:text-paper/50"
+        >
+          Limpiar datos del navegador
+        </button>
       </motion.div>
     </div>
   );
