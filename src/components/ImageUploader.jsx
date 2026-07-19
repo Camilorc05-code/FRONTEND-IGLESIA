@@ -115,14 +115,17 @@ const POSICIONES_RAPIDAS = [
  * Props:
  * - imagenes: array de URLs actuales (para modo edición)
  * - onChange: callback(urls) — se llama con el array completo de URLs cuando cambia
+ * - posiciones: objeto { [url]: "50% 50%" } — posiciones por imagen
+ * - onPositionChange: callback(url, position) — se llama cuando cambia la posición de una imagen
  * - maximo: número máximo de imágenes (default 20)
  * - label: etiqueta del campo
  * - multiple: permitir múltiples archivos (default true)
  */
-export function ImageUploader({ imagenes = [], onChange, maximo = 20, label = 'Imágenes', multiple = true }) {
+export function ImageUploader({ imagenes = [], onChange, posiciones = {}, onPositionChange, maximo = 20, label = 'Imágenes', multiple = true }) {
   const [subiendo, setSubiendo] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState('');
+  const [imagenEditando, setImagenEditando] = useState(null); // index de la imagen que se está posicionando
   const inputRef = useRef(null);
 
   const archivosExistentes = imagenes.filter((img) => typeof img === 'string' && img.trim());
@@ -263,7 +266,7 @@ export function ImageUploader({ imagenes = [], onChange, maximo = 20, label = 'I
                 exit={{ opacity: 0, scale: 0.8 }}
                 className="relative group aspect-square rounded-lg overflow-hidden bg-ink/5 border border-line"
               >
-                <img src={url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
+                <img src={url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" style={{ objectPosition: posiciones[url] || '50% 50%' }} />
 
                 {/* Overlay con controles */}
                 <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/40 transition-colors flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100">
@@ -275,6 +278,16 @@ export function ImageUploader({ imagenes = [], onChange, maximo = 20, label = 'I
                       title="Mover izquierda"
                     >
                       ←
+                    </button>
+                  )}
+                  {onPositionChange && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setImagenEditando(imagenEditando === i ? null : i); }}
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs shadow-sm ${imagenEditando === i ? 'bg-azul text-paper' : 'bg-paper/90 text-ink hover:bg-paper'}`}
+                      title="Posicionar imagen"
+                    >
+                      ⊕
                     </button>
                   )}
                   <button
@@ -303,6 +316,34 @@ export function ImageUploader({ imagenes = [], onChange, maximo = 20, label = 'I
                 </div>
               </motion.div>
             ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Panel de posición para imagen seleccionada */}
+      <AnimatePresence>
+        {imagenEditando !== null && imagenes[imagenEditando] && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-3"
+          >
+            <div className="bg-azul/5 border border-azul/20 rounded-xl p-3">
+              <p className="text-xs text-ink/60 mb-2 font-medium">Posición de la imagen #{imagenEditando + 1} — arrastra para ajustar:</p>
+              <ImagePositioner
+                imagen={imagenes[imagenEditando]}
+                posicion={posiciones[imagenes[imagenEditando]] || '50% 50%'}
+                onPosicionChange={(pos) => onPositionChange(imagenes[imagenEditando], pos)}
+              />
+              <button
+                type="button"
+                onClick={() => setImagenEditando(null)}
+                className="mt-2 text-xs text-azul hover:underline"
+              >
+                Cerrar
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -16,6 +16,7 @@ export default function EventosAdmin() {
   const [editando, setEditando] = useState(null);
   const [form, setForm] = useState(VACIO);
   const [galeriaUrls, setGaleriaUrls] = useState([]);
+  const [galeriaPosiciones, setGaleriaPosiciones] = useState({});
   const [guardando, setGuardando] = useState(false);
 
   async function cargar() {
@@ -31,6 +32,7 @@ export default function EventosAdmin() {
   function abrirNuevo() {
     setForm(VACIO);
     setGaleriaUrls([]);
+    setGaleriaPosiciones({});
     setEditando(null);
     setModalAbierto(true);
   }
@@ -38,6 +40,9 @@ export default function EventosAdmin() {
   function abrirEditar(e) {
     setForm({ ...VACIO, ...e, fecha: e.fecha.split('T')[0] });
     setGaleriaUrls((e.imagenes || []).map((img) => img.url));
+    const pos = {};
+    (e.imagenes || []).forEach((img) => { if (img.position) pos[img.url] = img.position; });
+    setGaleriaPosiciones(pos);
     setEditando(e.id);
     setModalAbierto(true);
   }
@@ -45,7 +50,12 @@ export default function EventosAdmin() {
   async function guardar(e) {
     e.preventDefault();
     setGuardando(true);
-    const payload = { ...form, imagenes: galeriaUrls };
+    const imagenesPayload = galeriaUrls.map((url, i) => ({
+      url,
+      position: galeriaPosiciones[url] || '50% 50%',
+      orden: i,
+    }));
+    const payload = { ...form, imagenes: imagenesPayload };
     try {
       if (editando) await api.put(`/eventos/${editando}`, payload);
       else await api.post('/eventos', payload);
@@ -208,6 +218,8 @@ export default function EventosAdmin() {
                 <ImageUploader
                   imagenes={galeriaUrls}
                   onChange={setGaleriaUrls}
+                  posiciones={galeriaPosiciones}
+                  onPositionChange={(url, pos) => setGaleriaPosiciones((prev) => ({ ...prev, [url]: pos }))}
                   label="Galería de fotos"
                   maximo={20}
                 />

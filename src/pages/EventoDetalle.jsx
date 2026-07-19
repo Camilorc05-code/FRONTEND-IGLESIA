@@ -43,8 +43,8 @@ export default function EventoDetalle() {
   }
 
   const fotos = [
-    ...(evento.imagenUrl ? [evento.imagenUrl] : []),
-    ...(evento.imagenes || []).map((img) => img.url),
+    ...(evento.imagenUrl ? [{ url: evento.imagenUrl, position: evento.imagenPosicion || '50% 50%' }] : []),
+    ...(evento.imagenes || []).map((img) => ({ url: img.url, position: img.position || '50% 50%' })),
   ];
 
   return (

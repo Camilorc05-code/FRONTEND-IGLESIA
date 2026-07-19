@@ -13,6 +13,7 @@ export default function ServiciosAdmin() {
   const [editando, setEditando] = useState(null);
   const [form, setForm] = useState(VACIO);
   const [galeriaUrls, setGaleriaUrls] = useState([]);
+  const [galeriaPosiciones, setGaleriaPosiciones] = useState({});
   const [guardando, setGuardando] = useState(false);
 
   async function cargar() {
@@ -25,6 +26,7 @@ export default function ServiciosAdmin() {
   function abrirNuevo() {
     setForm(VACIO);
     setGaleriaUrls([]);
+    setGaleriaPosiciones({});
     setEditando(null);
     setModalAbierto(true);
   }
@@ -32,6 +34,9 @@ export default function ServiciosAdmin() {
   function abrirEditar(s) {
     setForm({ ...VACIO, ...s });
     setGaleriaUrls((s.imagenes || []).map((img) => img.url));
+    const pos = {};
+    (s.imagenes || []).forEach((img) => { if (img.position) pos[img.url] = img.position; });
+    setGaleriaPosiciones(pos);
     setEditando(s.id);
     setModalAbierto(true);
   }
@@ -39,7 +44,12 @@ export default function ServiciosAdmin() {
   async function guardar(e) {
     e.preventDefault();
     setGuardando(true);
-    const payload = { ...form, imagenes: galeriaUrls };
+    const imagenesPayload = galeriaUrls.map((url, i) => ({
+      url,
+      position: galeriaPosiciones[url] || '50% 50%',
+      orden: i,
+    }));
+    const payload = { ...form, imagenes: imagenesPayload };
     try {
       if (editando) await api.put(`/servicios/${editando}`, payload);
       else await api.post('/servicios', payload);
@@ -191,6 +201,8 @@ export default function ServiciosAdmin() {
                 <ImageUploader
                   imagenes={galeriaUrls}
                   onChange={setGaleriaUrls}
+                  posiciones={galeriaPosiciones}
+                  onPositionChange={(url, pos) => setGaleriaPosiciones((prev) => ({ ...prev, [url]: pos }))}
                   label="Galería de fotos"
                   maximo={20}
                 />

@@ -13,7 +13,10 @@ export function GaleriaAuto({ imagenes, alt = 'Galería', className = '', interv
   const [actual, setActual] = useState(0);
   const [pausado, setPausado] = useState(false);
 
+  // Soporta tanto strings como objetos {url, position}
   const total = imagenes?.length || 0;
+  const getUrl = (img) => typeof img === 'string' ? img : img.url;
+  const getPos = (img) => typeof img === 'string' ? '50% 50%' : (img.position || '50% 50%');
 
   const siguiente = useCallback(() => {
     setActual((prev) => (prev + 1) % total);
@@ -42,9 +45,10 @@ export function GaleriaAuto({ imagenes, alt = 'Galería', className = '', interv
         <AnimatePresence>
           <motion.img
             key={actual}
-            src={imagenes[actual]}
+            src={getUrl(imagenes[actual])}
             alt={`${alt} ${actual + 1}`}
             className="absolute inset-0 w-full h-full object-cover"
+            style={{ objectPosition: getPos(imagenes[actual]) }}
             initial={{ opacity: 0, scale: 1.05 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
@@ -117,12 +121,14 @@ export function GaleriaMini({ imagenes, className = '' }) {
   if (!imagenes?.length) return null;
   const mostrables = imagenes.slice(0, 4);
   const restantes = imagenes.length - 4;
+  const getUrl = (img) => typeof img === 'string' ? img : img.url;
+  const getPos = (img) => typeof img === 'string' ? '50% 50%' : (img.position || '50% 50%');
 
   return (
     <div className={`grid grid-cols-2 gap-1 rounded-lg overflow-hidden ${className}`}>
       {mostrables.map((img, i) => (
         <div key={i} className="relative aspect-square overflow-hidden bg-ink/5">
-          <img src={img.url || img} alt="" className="w-full h-full object-cover" />
+          <img src={getUrl(img)} alt="" className="w-full h-full object-cover" style={{ objectPosition: getPos(img) }} />
           {i === 3 && restantes > 0 && (
             <div className="absolute inset-0 bg-ink/50 flex items-center justify-center">
               <span className="text-paper font-display text-lg">+{restantes}</span>
