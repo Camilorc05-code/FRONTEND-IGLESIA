@@ -5,7 +5,7 @@ import { formatTimeRange12h } from '../../utils/formatTime';
 import { ImageUploader, ImageUploaderSingle } from '../../components/ImageUploader';
 
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-const VACIO = { nombre: '', diaSemana: 'Domingo', horaInicio: '', horaFin: '', lugar: '', descripcion: '', imagenUrl: '' };
+const VACIO = { nombre: '', diaSemana: 'Domingo', horaInicio: '', horaFin: '', lugar: '', descripcion: '', imagenUrl: '', imagenPosicion: 'center center' };
 
 export default function ServiciosAdmin() {
   const [servicios, setServicios] = useState([]);
@@ -81,7 +81,7 @@ export default function ServiciosAdmin() {
             >
               {(s.imagenUrl || s.imagenes?.length > 0) && (
                 <div className="h-32 overflow-hidden bg-ink/5 relative">
-                  <img src={s.imagenUrl || s.imagenes?.[0]?.url} alt={s.nombre} className="w-full h-32 object-cover" />
+                  <img src={s.imagenUrl || s.imagenes?.[0]?.url} alt={s.nombre} className="w-full h-32 object-cover" style={{ objectPosition: s.imagenPosicion || 'center center' }} />
                   {s.imagenes?.length > 0 && (
                     <div className="absolute top-2 right-2 bg-ink/60 backdrop-blur text-paper text-xs font-mono px-2 py-0.5 rounded-full">
                       📷 {s.imagenes.length}
@@ -181,6 +181,8 @@ export default function ServiciosAdmin() {
                 {/* Subir foto de portada */}
                 <ImageUploaderSingle
                   imagen={form.imagenUrl || ''}
+                  posicion={form.imagenPosicion || 'center center'}
+                  onPosicionChange={(pos) => setForm({ ...form, imagenPosicion: pos })}
                   onChange={(url) => setForm({ ...form, imagenUrl: url })}
                   label="Foto de portada"
                 />

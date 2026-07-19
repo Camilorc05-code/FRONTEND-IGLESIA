@@ -40,7 +40,7 @@ export function CarruselEventos({ eventos }) {
           >
             <div className="overflow-hidden h-36 pointer-events-none">
               {e.imagenUrl ? (
-                <img src={e.imagenUrl} alt={e.titulo} className="w-full h-36 object-cover transition-transform duration-500 group-hover:scale-110" draggable={false} />
+                <img src={e.imagenUrl} alt={e.titulo} className="w-full h-36 object-cover transition-transform duration-500 group-hover:scale-110" style={{ objectPosition: e.imagenPosicion || 'center center' }} draggable={false} />
               ) : (
                 <PlaceholderEvento categoria={e.categoria} className="w-full h-36 transition-transform duration-500 group-hover:scale-110" />
               )}

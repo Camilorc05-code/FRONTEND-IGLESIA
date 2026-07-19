@@ -6,7 +6,7 @@ import { ImageUploader, ImageUploaderSingle } from '../../components/ImageUpload
 
 const VACIO = {
   titulo: '', fecha: '', horaInicio: '', horaFin: '', lugar: '',
-  descripcion: '', imagenUrl: '', categoria: 'Otro',
+  descripcion: '', imagenUrl: '', imagenPosicion: 'center center', categoria: 'Otro',
 };
 
 export default function EventosAdmin() {
@@ -87,7 +87,7 @@ export default function EventosAdmin() {
             >
               <div className="h-36 overflow-hidden bg-ink/5 relative">
                 {e.imagenUrl ? (
-                  <img src={e.imagenUrl} alt={e.titulo} className="w-full h-36 object-cover" />
+                  <img src={e.imagenUrl} alt={e.titulo} className="w-full h-36 object-cover" style={{ objectPosition: e.imagenPosicion || 'center center' }} />
                 ) : e.imagenes?.[0] ? (
                   <img src={e.imagenes[0].url} alt={e.titulo} className="w-full h-36 object-cover" />
                 ) : (
@@ -198,6 +198,8 @@ export default function EventosAdmin() {
                 {/* Subir foto de portada */}
                 <ImageUploaderSingle
                   imagen={form.imagenUrl || ''}
+                  posicion={form.imagenPosicion || 'center center'}
+                  onPosicionChange={(pos) => setForm({ ...form, imagenPosicion: pos })}
                   onChange={(url) => setForm({ ...form, imagenUrl: url })}
                   label="Foto de portada"
                 />

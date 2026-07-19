@@ -2,6 +2,18 @@ import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../api/client';
 
+const POSICIONES = [
+  { value: 'center center', label: 'Centro' },
+  { value: 'center top', label: 'Arriba' },
+  { value: 'center bottom', label: 'Abajo' },
+  { value: 'left center', label: 'Izquierda' },
+  { value: 'right center', label: 'Derecha' },
+  { value: 'left top', label: 'Sup. Izq.' },
+  { value: 'right top', label: 'Sup. Der.' },
+  { value: 'left bottom', label: 'Inf. Izq.' },
+  { value: 'right bottom', label: 'Inf. Der.' },
+];
+
 /**
  * Componente de subida de imágenes con drag & drop.
  *
@@ -205,9 +217,9 @@ export function ImageUploader({ imagenes = [], onChange, maximo = 20, label = 'I
 
 /**
  * Variante simplificada para subir UNA sola imagen (portada).
- * Muestra preview con opción de eliminar.
+ * Muestra preview con opción de eliminar y selector de posición.
  */
-export function ImageUploaderSingle({ imagen = '', onChange, label = 'Foto de portada' }) {
+export function ImageUploaderSingle({ imagen = '', posicion = 'center center', onPosicionChange, onChange, label = 'Foto de portada' }) {
   const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState('');
   const [dragActive, setDragActive] = useState(false);
@@ -248,25 +260,56 @@ export function ImageUploaderSingle({ imagen = '', onChange, label = 'Foto de po
       <label className="label">{label}</label>
 
       {imagen ? (
-        <div className="relative group rounded-xl overflow-hidden bg-ink/5 border border-line">
-          <img src={imagen} alt="Portada" className="w-full h-36 object-cover" />
-          <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              className="px-3 py-1.5 rounded-full bg-paper/90 text-ink text-xs font-medium hover:bg-paper shadow-sm"
-            >
-              Cambiar
-            </button>
-            <button
-              type="button"
-              onClick={() => onChange('')}
-              className="px-3 py-1.5 rounded-full bg-rojo text-paper text-xs font-medium hover:bg-rojo/80 shadow-sm"
-            >
-              Eliminar
-            </button>
+        <div className="space-y-3">
+          <div className="relative group rounded-xl overflow-hidden bg-ink/5 border border-line">
+            <img
+              src={imagen}
+              alt="Portada"
+              className="w-full h-40 object-cover transition-all"
+              style={{ objectPosition: posicion }}
+            />
+            <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                className="px-3 py-1.5 rounded-full bg-paper/90 text-ink text-xs font-medium hover:bg-paper shadow-sm"
+              >
+                Cambiar
+              </button>
+              <button
+                type="button"
+                onClick={() => { onChange(''); if (onPosicionChange) onPosicionChange('center center'); }}
+                className="px-3 py-1.5 rounded-full bg-rojo text-paper text-xs font-medium hover:bg-rojo/80 shadow-sm"
+              >
+                Eliminar
+              </button>
+            </div>
+            <input ref={inputRef} type="file" accept="image/*" onChange={handleSelect} className="hidden" />
           </div>
-          <input ref={inputRef} type="file" accept="image/*" onChange={handleSelect} className="hidden" />
+
+          {/* Selector de posición */}
+          {onPosicionChange && (
+            <div>
+              <p className="text-xs text-ink/50 mb-2">Posición de la imagen (haz click donde quieras que se enfoque):</p>
+              <div className="grid grid-cols-3 gap-1 w-32">
+                {POSICIONES.map((pos) => (
+                  <button
+                    key={pos.value}
+                    type="button"
+                    onClick={() => onPosicionChange(pos.value)}
+                    title={pos.label}
+                    className={`w-10 h-7 rounded text-[9px] font-medium transition-all ${
+                      posicion === pos.value
+                        ? 'bg-azul text-paper shadow-sm'
+                        : 'bg-ink/5 text-ink/40 hover:bg-ink/10'
+                    }`}
+                  >
+                    {pos.label.slice(0, 3)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div
