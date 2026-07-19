@@ -1,11 +1,23 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const RESPONSES = [
+const API_URL = import.meta.env.VITE_API_URL || 'https://backend-iglesia-3op0.onrender.com';
+
+function buildScheduleText(servicios) {
+  if (!servicios || servicios.length === 0) {
+    return 'Nuestros horarios están disponibles en la página de horarios. ¡Visítanos!';
+  }
+  const lines = servicios.map((s) => {
+    const hora = s.horaInicio ? ` a las ${s.horaInicio}` : '';
+    return `• ${s.diaSemana}${hora} — ${s.nombre}`;
+  });
+  return `Nuestros horarios:\n${lines.join('\n')}`;
+}
+
+const STATIC_RESPONSES = [
   { keys: ['hola', 'buenos dias', 'buenas tardes', 'buenas noches'], text: '¡Hola! 👋 Bienvenido a Misión Panamericana. ¿En qué puedo ayudarte?' },
-  { keys: ['horario', 'hora', 'cuando', 'servicio', 'culto'], text: 'Nuestros horarios son: 🕐 Domingo: 9:00 AM y 6:00 PM | 🕐 Miércoles: 7:00 PM (Oración) | 🕐 Viernes: 7:00 PM (Jóvenes)' },
   { keys: ['donde', 'ubicación', 'dirección', 'llegar', 'mapa'], text: '📍 Estamos en Calle 12 #10-19, Paz de Ariporo, Casanare. ¡Te esperamos!' },
-  { keys: ['evento', 'eventos', 'qué hay', 'próximo'], text: 'Puedes ver todos nuestros eventos en nuestra página de eventos. ¡Hay cosas emocionantes cada semana! 🎉' },
+  { keys: ['evento', 'eventos', 'qué hay', 'próximo'], text: 'Puedes ver todos nuestros eventos en la página de eventos. ¡Hay cosas emocionantes cada semana! 🎉' },
   { keys: ['cita', 'cita pastoral', 'pastor', 'hablar con'], text: 'Puedes agendar una cita pastoral en: misionpanamericana.vercel.app/citas 📅' },
   { keys: ['registro', 'registrarse', 'miembro', 'unirse'], text: '¡Qué alegría que quieras unirte! Puedes registrarte en: misionpanamericana.vercel.app/registrarse ✍️' },
   { keys: ['donar', 'ofrenda', 'diezmo', 'contribuir'], text: 'Puedes hacer tus ofrendas en: misionpanamericana.vercel.app/donaciones 💝' },
@@ -16,14 +28,6 @@ const RESPONSES = [
 ];
 
 const DEFAULT_MSG = 'Gracias por tu mensaje. Un miembro de nuestro equipo te contactará pronto. Mientras tanto, puedes visitar nuestra página en misionpanamericana.vercel.app';
-
-function getReply(input) {
-  const lower = input.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  for (const { keys, text } of RESPONSES) {
-    if (keys.some((k) => lower.includes(k))) return text;
-  }
-  return DEFAULT_MSG;
-}
 
 function TypingIndicator() {
   return (
@@ -50,7 +54,7 @@ function MessageBubble({ msg }) {
       className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
     >
       <div
-        className={`px-4 py-2.5 text-sm leading-relaxed max-w-[80%] ${
+        className={`px-4 py-2.5 text-sm leading-relaxed max-w-[80%] whitespace-pre-line ${
           isUser
             ? 'bg-[#024293] text-white rounded-2xl rounded-br-md'
             : 'bg-gray-100 text-gray-800 rounded-2xl rounded-bl-md'
@@ -67,6 +71,7 @@ export function ChatBot() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
+  const [servicios, setServicios] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const welcomeSent = useRef(false);
@@ -79,6 +84,14 @@ export function ChatBot() {
     scrollToBottom();
   }, [messages, typing, scrollToBottom]);
 
+  // Cargar servicios reales de la API al montar
+  useEffect(() => {
+    fetch(`${API_URL}/api/servicios`)
+      .then((r) => r.json())
+      .then((data) => setServicios(data))
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (open && !welcomeSent.current) {
       welcomeSent.current = true;
@@ -86,6 +99,22 @@ export function ChatBot() {
       setTimeout(() => inputRef.current?.focus(), 300);
     }
   }, [open]);
+
+  function getReply(text) {
+    const lower = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    // Horarios — usar datos reales de la API
+    if (['horario', 'hora', 'cuando', 'servicio', 'culto'].some((k) => lower.includes(k))) {
+      return buildScheduleText(servicios);
+    }
+
+    // Respuestas estáticas
+    for (const { keys, text: response } of STATIC_RESPONSES) {
+      if (keys.some((k) => lower.includes(k))) return response;
+    }
+
+    return DEFAULT_MSG;
+  }
 
   function handleSend() {
     const text = input.trim();
@@ -111,7 +140,6 @@ export function ChatBot() {
 
   return (
     <>
-      {/* Toggle button */}
       <motion.button
         onClick={() => setOpen((o) => !o)}
         aria-label={open ? 'Cerrar chat' : 'Abrir chat'}
@@ -159,7 +187,6 @@ export function ChatBot() {
         </AnimatePresence>
       </motion.button>
 
-      {/* Chat window */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -169,7 +196,6 @@ export function ChatBot() {
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             className="fixed bottom-[9rem] right-5 z-40 w-[calc(100vw-2.5rem)] sm:w-[380px] max-h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
           >
-            {/* Header */}
             <div className="bg-[#024293] px-5 py-3.5 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-xs font-bold">
@@ -192,7 +218,6 @@ export function ChatBot() {
               </button>
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 min-h-0">
               {messages.map((msg) => (
                 <MessageBubble key={msg.id} msg={msg} />
@@ -201,7 +226,6 @@ export function ChatBot() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
             <div className="border-t border-gray-200 px-3 py-3 flex items-center gap-2 shrink-0">
               <input
                 ref={inputRef}
