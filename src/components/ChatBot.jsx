@@ -8,101 +8,86 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://backend-iglesia-3op0.on
 const KB = [
   {
     intents: ['horario', 'horarios', 'hora', 'cuando', 'cuando es', 'servicio', 'culto', 'reunion', 'reuniones'],
-   reply: (ctx) => {
+    reply: (ctx) => {
       if (!ctx.servicios || ctx.servicios.length === 0) {
-        return { text: 'Estamos cargando los horarios. Visita nuestra página de horarios para verlos actualizados.', link: '/horarios', linkLabel: 'Ver horarios' };
+        return { text: 'Nuestros horarios están en la página de horarios. ¡Dale un vistazo!', link: '/horarios', linkLabel: 'Ver horarios' };
       }
       const lines = ctx.servicios.map((s) => {
         const hora = s.horaInicio ? ` a las ${s.horaInicio}` : '';
         return `• ${s.diaSemana}${hora} — ${s.nombre}`;
       });
-      return { text: `Nuestros horarios de servicios:\n\n${lines.join('\n')}\n\n¿Te gustaría asistir a alguno?`, link: '/horarios', linkLabel: 'Ver todos los horarios' };
+      return { text: `Estos son nuestros horarios:\n\n${lines.join('\n')}\n\n¿Te gustaría asistir a alguno?`, link: '/horarios', linkLabel: 'Ver todos los horarios' };
     },
-    followUp: ['¿A cuál servicio te gustaría asistir?', '¿Necesitas información sobre algún horario específico?'],
   },
   {
     intents: ['evento', 'eventos', 'qué hay', 'proximo', 'próximo', 'actividad', 'actividades', 'reunion especial'],
-   reply: () => ({ text: '¡Tenemos eventos increíbles! Puedes ver todos los próximos eventos, incluyendo fechas, horarios y detalles.', link: '/eventos', linkLabel: 'Ver eventos' }),
-    followUp: ['¿Te interesa algún tipo de evento en particular?'],
+    reply: () => ({ text: 'Tenemos eventos increíbles cada semana. Puedes ver todos los próximos eventos con sus fechas y detalles en nuestra página.', link: '/eventos', linkLabel: 'Ver eventos' }),
   },
   {
     intents: ['cita', 'cita pastoral', 'pastor', 'hablar con', 'conversar', 'orientación', 'consejería', 'necesito hablar'],
-   reply: () => ({ text: '¡Claro! Puedes agendar una cita pastoral para hablar con nuestro equipo. Es gratuito y confidencial.', link: '/citas', linkLabel: 'Agendar cita pastoral' }),
-    followUp: ['¿Hay algún tema en particular del que quieras hablar?'],
+    reply: () => ({ text: 'Puedes agendar una cita pastoral para hablar con nuestro equipo. Es gratuito y confidencial. Agenda tu cita desde nuestra página.', link: '/citas', linkLabel: 'Agendar cita pastoral' }),
   },
   {
     intents: ['registro', 'registrarse', 'miembro', 'unirse', 'iglesia', 'pertenecer', 'formar parte'],
-   reply: () => ({ text: '¡Qué alegría que quieras ser parte de nuestra familia! Puedes completar tu registro en línea.', link: '/registrarse', linkLabel: 'Registrarme ahora' }),
-    followUp: ['¿Tienes alguna pregunta sobre el registro?'],
+    reply: () => ({ text: '¡Qué alegría que quieras ser parte de nuestra familia! Puedes completar tu registro en línea desde nuestra página.', link: '/registrarse', linkLabel: 'Registrarme ahora' }),
   },
   {
     intents: ['donar', 'ofrenda', 'diezmo', 'contribuir', 'aportar', 'dar', 'donación', 'donaciones', 'apoyar'],
-   reply: () => ({ text: 'Gracias por tu generosidad. Puedes hacer tus ofrendas y donaciones de forma segura en línea.', link: '/donaciones', linkLabel: 'Hacer una donación' }),
-    followUp: ['¿Hay alguna causa específica que quieras apoyar?'],
+    reply: () => ({ text: 'Gracias por tu generosidad. Puedes hacer tus ofrendas y donaciones de forma segura en línea.', link: '/donaciones', linkLabel: 'Hacer una donación' }),
   },
   {
     intents: ['bebé', 'baby', 'presentación', 'bautizo bebe', 'bautizo', 'niño', 'nacimiento'],
-   reply: () => ({ text: 'Las presentaciones de bebés son un momento muy especial. Para coordinar la fecha, agenda una cita con el pastor.', link: '/citas', linkLabel: 'Agendar cita para bebé' }),
-    followUp: ['¿Ya tienes una fecha en mente para la presentación?'],
+    reply: () => ({ text: 'Las presentaciones de bebés son muy especiales. Para coordinar la fecha, agenda una cita con el pastor.', link: '/citas', linkLabel: 'Agendar cita para bebé' }),
   },
   {
-    intents: ['ubicación', 'dirección', 'dónde', 'llegar', 'mapa', 'mapa', 'Cómo llegar', 'Cómo llego'],
-   reply: () => ({ text: '📍 Estamos ubicados en:\n\nCalle 12 #10-19\nPaz de Ariporo, Casanare\nColombia\n\n¡Te esperamos con los brazos abiertos!' }),
-    followUp: ['¿Necesitas información de transporte?'],
+    intents: ['ubicación', 'dirección', 'dónde', 'llegar', 'mapa', 'Cómo llegar', 'Cómo llego'],
+    reply: () => ({ text: '📍 Estamos en Calle 12 #10-19, Paz de Ariporo, Casanare. ¡Te esperamos!' }),
   },
   {
     intents: ['teléfono', 'celular', 'contacto', 'whatsapp', 'llamar', 'comunicar'],
-   reply: () => ({ text: 'Puedes contactarnos por:\n\n📱 WhatsApp: +57 313 295 9669\n📧 Email: info@misionpanamericana.com\n\nTambién nos encuentras en redes sociales.' }),
-    followUp: ['¿Hay algo específico que quieras consultarnos?'],
+    reply: () => ({ text: 'Puedes contactarnos por:\n\n📱 WhatsApp: +57 313 295 9669\n📧 Email: info@misionpanamericana.com\n\nTambién nos encuentras en redes sociales.' }),
   },
   {
-    intents: ['facebook', 'red social', 'redes'],
-   reply: () => ({ text: 'Síguenos en Facebook para estar al día con todas las novedades.', link: 'https://www.facebook.com/share/1D2fXLv3hM/?mibextid=wwXIfr', linkLabel: 'Ir a Facebook', external: true }),
-    followUp: ['¿También quieres seguirnos en Instagram?'],
+    intents: ['facebook'],
+    reply: () => ({ text: 'Síguenos en Facebook para estar al día con todas las novedades.', link: 'https://www.facebook.com/share/1D2fXLv3hM/?mibextid=wwXIfr', linkLabel: 'Ir a Facebook', external: true }),
   },
   {
     intents: ['instagram'],
-   reply: () => ({ text: 'Síguenos en Instagram para contenido inspirador y actualizaciones.', link: 'https://www.instagram.com/mision_panamericana_pza', linkLabel: 'Ir a Instagram', external: true }),
-    followUp: ['¿Hay algo más en lo que te pueda ayudar?'],
+    reply: () => ({ text: 'Síguenos en Instagram para contenido inspirador y actualizaciones.', link: 'https://www.instagram.com/mision_panamericana_pza', linkLabel: 'Ir a Instagram', external: true }),
   },
   {
     intents: ['redes sociales', 'redes', 'síguenos'],
-   reply: () => ({ text: '¡Síguenos en nuestras redes sociales!\n\n📘 Facebook: @mision_panamericana_pza\n📷 Instagram: @mision_panamericana_pza\n\n¡Comparte con tus amigos!' }),
+    reply: () => ({ text: '¡Síguenos en nuestras redes sociales!\n\n📘 Facebook: @mision_panamericana_pza\n📷 Instagram: @mision_panamericana_pza\n\n¡Comparte con tus amigos!' }),
   },
   {
     intents: ['quién', 'quienes', 'pastores', 'lideres', 'equipo', 'dirige'],
-   reply: () => ({ text: 'Nuestra iglesia es liderada por un equipo dedicado de pastores y líderes comprometidos con el servicio. Puedes conocer más sobre nosotros en nuestra página.', link: '/', linkLabel: 'Conocer más' }),
+    reply: () => ({ text: 'Nuestra iglesia es liderada por un equipo dedicado de pastores y líderes comprometidos con el servicio. Puedes conocernos en nuestra página.', link: '/', linkLabel: 'Conocer más' }),
   },
   {
     intents: ['misión', 'visión', 'qué creen', 'creencias', 'valores'],
-   reply: () => ({ text: 'Somos Misión Panamericana — Centro de Fe y Esperanza. Nuestra misión es llevar el amor de Dios a cada familia de Paz de Ariporo y la región.\n\nCreemos en:\n• La salvación por gracia\n• El bautismo en el Espíritu Santo\n• La sanidad y restauración\n• La comunidad y el servicio' }),
-    followUp: ['¿Te gustaría conocernos en persona?'],
+    reply: () => ({ text: 'Somos Misión Panamericana — Centro de Fe y Esperanza. Nuestra misión es llevar el amor de Dios a cada familia.\n\nCreemos en:\n• La salvación por gracia\n• El bautismo en el Espíritu Santo\n• La sanidad y restauración\n• La comunidad y el servicio' }),
   },
   {
-    intents: ['horario', 'domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
-   reply: (ctx) => {
-      if (!ctx.servicios || ctx.servicios.length === 0) {
-        return { text: 'Visita nuestra página de horarios para ver los servicios de cada día.', link: '/horarios', linkLabel: 'Ver horarios' };
-      }
+    intents: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
+    reply: (ctx) => {
       return { text: 'Tenemos servicios durante toda la semana. Visita nuestra página de horarios para ver los detalles de cada día.', link: '/horarios', linkLabel: 'Ver horarios' };
     },
   },
   {
-    intents: ['niños', 'infantil', 'escuela dominical', 'escuela', 'dominical', 'años', 'adolescentes', 'jóvenes'],
-   reply: () => ({ text: 'Tenemos programas para toda la familia, incluyendo actividades para niños y jóvenes. Contáctanos para más detalles sobre nuestros programas infantiles.', link: '/citas', linkLabel: 'Agendar cita' }),
+    intents: ['niños', 'infantil', 'escuela dominical', 'escuela', 'dominical', 'adolescentes', 'jóvenes'],
+    reply: () => ({ text: 'Tenemos programas para toda la familia, incluyendo actividades para niños y jóvenes. Agenda una cita para más detalles.', link: '/citas', linkLabel: 'Agendar cita' }),
   },
   {
-    intents: ['ayuda', 'necesito', 'emergencia', 'crisis', 'apoyo', 'apoyar', 'socorro'],
-   reply: () => ({ text: 'Si estás pasando por una situación difícil, estamos aquí para ayudarte. Puedes agendar una cita pastoral confidencial.', link: '/citas', linkLabel: 'Agendar cita pastoral' }),
-    followUp: ['No estás solo. Nuestro equipo está listo para acompañarte.'],
+    intents: ['ayuda', 'necesito', 'emergencia', 'crisis', 'apoyo', 'socorro'],
+    reply: () => ({ text: 'Si estás pasando por una situación difícil, estamos aquí para ayudarte. Agenda una cita pastoral confidencial.', link: '/citas', linkLabel: 'Agendar cita pastoral' }),
   },
   {
     intents: ['gracias', 'thank', 'bendiciones', 'bendición'],
-   reply: () => ({ text: '¡Bendiciones para ti también! 😊 Si necesitas algo más, estaré aquí para ayudarte.' }),
+    reply: () => ({ text: '¡Bendiciones para ti también! 😊 Si necesitas algo más, estaré aquí para ayudarte.' }),
   },
   {
     intents: ['adiós', 'hasta luego', 'nos vemos', 'bye', 'chao'],
-   reply: () => ({ text: '¡Hasta pronto! Que Dios te bendiga. 🙏 Recuerda que estamos aquí para servirte cuando lo necesites.' }),
+    reply: () => ({ text: '¡Hasta pronto! Que Dios te bendiga. 🙏 Recuerda que estamos aquí para servirte cuando lo necesites.' }),
   },
   {
     intents: ['nombre', 'cómo te llamas', 'quién eres', 'qué eres'],
@@ -114,16 +99,6 @@ const KB = [
 const GREETINGS = ['hola', 'buenos dias', 'buenas tardes', 'buenas noches', 'hey', 'saludos', 'buenas'];
 const THANKS = ['gracias', 'thank', 'thanks', 'agradezco', 'bendiciones'];
 const BYES = ['adiós', 'hasta luego', 'nos vemos', 'bye', 'chao', 'chau'];
-
-/* ── Quick Reply Suggestions ── */
-const QUICK_REPLIES = [
-  { label: 'Horarios', text: '¿Cuáles son los horarios de servicios?' },
-  { label: 'Eventos', text: '¿Qué eventos tienen próximamente?' },
-  { label: 'Agendar cita', text: 'Quiero agendar una cita pastoral' },
-  { label: 'Donar', text: '¿Cómo puedo hacer una donación?' },
-  { label: 'Registrarme', text: 'Quiero registrarme como miembro' },
-  { label: 'Ubicación', text: '¿Dónde están ubicados?' },
-];
 
 /* ── Intent Detection ── */
 function detectIntent(text) {
@@ -163,7 +138,6 @@ function generateReply(text, ctx) {
     case 'greeting':
       return {
         text: '¡Hola! 👋 Bienvenido a Misión Panamericana. ¿En qué puedo ayudarte hoy?',
-        quickReplies: QUICK_REPLIES,
       };
     case 'thanks':
       return { text: '¡Con gusto! Si necesitas algo más, no dudes en preguntar. 😊' };
@@ -176,13 +150,11 @@ function generateReply(text, ctx) {
         link: reply.link,
         linkLabel: reply.linkLabel,
         external: reply.external,
-        quickReplies: intent.entry.followUp ? [{ label: 'Sí', text: intent.entry.followUp[0] }] : undefined,
       };
     }
     default:
       return {
         text: 'No estoy seguro de entender tu pregunta, pero puedo ayudarte con:\n\n• Horarios de servicios\n• Próximos eventos\n• Citas pastorales\n• Donaciones\n• Registro de miembros\n• Ubicación y contacto\n\n¿Qué te gustaría saber?',
-        quickReplies: QUICK_REPLIES,
       };
   }
 }
@@ -203,7 +175,7 @@ function TypingIndicator() {
   );
 }
 
-function MessageBubble({ msg, onQuickReply, onLink }) {
+function MessageBubble({ msg, onLink }) {
   const isUser = msg.from === 'user';
   return (
     <motion.div
@@ -236,21 +208,6 @@ function MessageBubble({ msg, onQuickReply, onLink }) {
             </svg>
             {msg.linkLabel || 'Ir a la página'}
           </button>
-        )}
-
-        {/* Quick replies */}
-        {msg.quickReplies && (
-          <div className="flex flex-wrap gap-1.5 mt-2 ml-1">
-            {msg.quickReplies.map((qr, i) => (
-              <button
-                key={i}
-                onClick={() => onQuickReply(qr.text)}
-                className="px-3 py-1.5 bg-[#024293] text-white text-xs font-medium rounded-full hover:bg-[#024293]/90 transition-colors"
-              >
-                {qr.label}
-              </button>
-            ))}
-          </div>
         )}
       </div>
     </motion.div>
@@ -291,7 +248,6 @@ export function ChatBot() {
         id: Date.now(),
         from: 'bot',
         text: '¡Hola! Soy el asistente de Misión Panamericana. 👋\n\nPuedo ayudarte con:\n• Horarios de servicios\n• Próximos eventos\n• Citas pastorales\n• Donaciones\n• Registro de miembros\n• Ubicación y contacto\n\n¿Qué te gustaría saber?',
-        quickReplies: QUICK_REPLIES,
       }]);
       setTimeout(() => inputRef.current?.focus(), 300);
     }
@@ -417,7 +373,6 @@ export function ChatBot() {
                 <MessageBubble
                   key={msg.id}
                   msg={msg}
-                  onQuickReply={handleSend}
                   onLink={(link, external) => {
                     if (external) {
                       window.open(link, '_blank');
