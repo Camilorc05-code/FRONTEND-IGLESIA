@@ -1,26 +1,40 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../api/client';
 
 /**
  * ImagePositioner: permite arrastrar una imagen dentro de un marco
  * para elegir qué parte se ve. Guarda la posición como object-position %.
+ * aspectClass: clase de Tailwind para el aspect ratio (ej: 'aspect-[16/10]', 'aspect-video')
  */
-function ImagePositioner({ imagen, posicion = '50% 50%', onPosicionChange }) {
+function ImagePositioner({ imagen, posicion = '50% 50%', onPosicionChange, aspectClass = 'aspect-[16/10]' }) {
   const contenedorRef = useRef(null);
   const [arrastrando, setArrastrando] = useState(false);
   const [inicio, setInicio] = useState({ x: 0, y: 0 });
   const [posActual, setPosActual] = useState(() => {
-    if (!posicion || posicion === 'center center') return { x: 50, y: 50 };
-    const [x, y] = posicion.split(' ').map((v) => {
-      if (v === 'left') return 0;
-      if (v === 'right') return 100;
-      if (v === 'top') return 0;
-      if (v === 'bottom') return 100;
+    if (!posicion) return { x: 50, y: 50 };
+    const parts = posicion.split(' ');
+    if (parts.length !== 2) return { x: 50, y: 50 };
+    const parseVal = (v) => {
+      if (v === 'left' || v === 'top') return 0;
+      if (v === 'right' || v === 'bottom') return 100;
       return parseFloat(v) || 50;
-    });
-    return { x, y };
+    };
+    return { x: parseVal(parts[0]), y: parseVal(parts[1]) };
   });
+
+  // Sync when posicion prop changes (e.g. when opening a different image)
+  useEffect(() => {
+    if (!posicion) return;
+    const parts = posicion.split(' ');
+    if (parts.length !== 2) return;
+    const parseVal = (v) => {
+      if (v === 'left' || v === 'top') return 0;
+      if (v === 'right' || v === 'bottom') return 100;
+      return parseFloat(v) || 50;
+    };
+    setPosActual({ x: parseVal(parts[0]), y: parseVal(parts[1]) });
+  }, [posicion]);
 
   const iniciarArrastre = (e) => {
     e.preventDefault();
@@ -65,7 +79,7 @@ function ImagePositioner({ imagen, posicion = '50% 50%', onPosicionChange }) {
       onTouchStart={iniciarArrastre}
       onTouchMove={mover}
       onTouchEnd={terminarArrastre}
-      className="relative w-full h-40 rounded-xl overflow-hidden bg-ink/10 border-2 border-dashed cursor-grab active:cursor-grabbing select-none"
+      className={`relative w-full ${aspectClass} rounded-xl overflow-hidden bg-ink/10 border-2 border-dashed cursor-grab active:cursor-grabbing select-none`}
       style={{ touchAction: 'none' }}
     >
       <img
@@ -74,7 +88,7 @@ function ImagePositioner({ imagen, posicion = '50% 50%', onPosicionChange }) {
         className="w-full h-full pointer-events-none"
         style={{
           objectFit: 'cover',
-          objectPosition: `${posActual.x}% ${posActual.y}%`,
+          objectPosition: `${posActual.x.toFixed(1)}% ${posActual.y.toFixed(1)}%`,
           transform: arrastrando ? 'scale(1.02)' : 'scale(1)',
           transition: arrastrando ? 'none' : 'transform 0.2s',
         }}
@@ -88,7 +102,7 @@ function ImagePositioner({ imagen, posicion = '50% 50%', onPosicionChange }) {
         <div className="absolute top-1/3 left-0 right-0 border-t border-white/10" />
         <div className="absolute top-2/3 left-0 right-0 border-t border-white/10" />
       </div>
-      {/* Indicador de posición */}
+      {/* Indicador */}
       <div className="absolute bottom-2 right-2 bg-ink/70 text-paper text-[10px] px-2 py-0.5 rounded-full backdrop-blur">
         {arrastrando ? 'Soltar aquí' : 'Arrastra la imagen'}
       </div>
@@ -121,7 +135,7 @@ const POSICIONES_RAPIDAS = [
  * - label: etiqueta del campo
  * - multiple: permitir múltiples archivos (default true)
  */
-export function ImageUploader({ imagenes = [], onChange, posiciones = {}, onPositionChange, maximo = 20, label = 'Imágenes', multiple = true }) {
+export function ImageUploader({ imagenes = [], onChange, posiciones = {}, onPositionChange, maximo = 20, label = 'Imágenes', multiple = true, galleryAspect = 'aspect-[16/10]' }) {
   const [subiendo, setSubiendo] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState('');
@@ -335,6 +349,7 @@ export function ImageUploader({ imagenes = [], onChange, posiciones = {}, onPosi
                 imagen={imagenes[imagenEditando]}
                 posicion={posiciones[imagenes[imagenEditando]] || '50% 50%'}
                 onPosicionChange={(pos) => onPositionChange(imagenes[imagenEditando], pos)}
+                aspectClass={galleryAspect}
               />
               <button
                 type="button"

@@ -222,6 +222,7 @@ export default function EventosAdmin() {
                   onPositionChange={(url, pos) => setGaleriaPosiciones((prev) => ({ ...prev, [url]: pos }))}
                   label="Galería de fotos"
                   maximo={20}
+                  galleryAspect="aspect-[16/10]"
                 />
 
                 <div>
