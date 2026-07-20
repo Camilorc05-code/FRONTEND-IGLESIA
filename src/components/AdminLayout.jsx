@@ -31,6 +31,11 @@ export function RutaProtegida({ children }) {
 export default function AdminLayout() {
   const { usuario, logout } = useAuth();
   const [abierto, setAbierto] = useState(false);
+  const [showPassModal, setShowPassModal] = useState(false);
+  const [passForm, setPassForm] = useState({ actual: '', nueva: '', repetir: '' });
+  const [passError, setPassError] = useState('');
+  const [passExito, setPassExito] = useState('');
+  const [passCargando, setPassCargando] = useState(false);
   const location = useLocation();
 
   const items = useMemo(() => {
@@ -40,6 +45,22 @@ export default function AdminLayout() {
 
   // Cierra el menú móvil automáticamente al cambiar de sección
   useEffect(() => setAbierto(false), [location.pathname]);
+
+  async function cambiarPassword(e) {
+    e.preventDefault();
+    setPassError(''); setPassExito('');
+    if (passForm.nueva !== passForm.repetir) return setPassError('Las contraseñas nuevas no coinciden.');
+    if (passForm.nueva.length < 6) return setPassError('La nueva contraseña debe tener al menos 6 caracteres.');
+    setPassCargando(true);
+    try {
+      await api.put('/auth/cambiar-password', { actual: passForm.actual, nueva: passForm.nueva });
+      setPassExito('Contraseña actualizada correctamente.');
+      setPassForm({ actual: '', nueva: '', repetir: '' });
+      setTimeout(() => { setShowPassModal(false); setPassExito(''); }, 2000);
+    } catch (err) {
+      setPassError(err.response?.data?.error || 'Error al cambiar contraseña.');
+    } finally { setPassCargando(false); }
+  }
 
   // Scroll al inicio al cambiar de sección
   useEffect(() => {
@@ -123,6 +144,12 @@ export default function AdminLayout() {
                 </NavLink>
               ))}
               <button
+                onClick={() => { setAbierto(false); setShowPassModal(true); }}
+                className="w-full text-left px-3 py-2.5 rounded-lg text-sm text-paper/60 hover:bg-paper/10 hover:text-paper"
+              >
+                Cambiar contraseña
+              </button>
+              <button
                 onClick={logout}
                 className="w-full text-left px-3 py-2.5 rounded-lg text-sm text-paper/60 hover:bg-paper/10 hover:text-paper"
               >
@@ -169,7 +196,13 @@ export default function AdminLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="p-3 border-t border-paper/10">
+        <div className="p-3 border-t border-paper/10 space-y-1">
+          <button
+            onClick={() => setShowPassModal(true)}
+            className="w-full text-left px-3 py-2.5 rounded-lg text-sm text-paper/60 hover:bg-paper/10 hover:text-paper"
+          >
+            Cambiar contraseña
+          </button>
           <button
             onClick={logout}
             className="w-full text-left px-3 py-2.5 rounded-lg text-sm text-paper/60 hover:bg-paper/10 hover:text-paper"
@@ -182,6 +215,51 @@ export default function AdminLayout() {
       <main className="flex-1 min-w-0">
         <Outlet />
       </main>
+
+      {/* Modal cambiar contraseña */}
+      <AnimatePresence>
+        {showPassModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4"
+            onClick={() => { setShowPassModal(false); setPassError(''); setPassExito(''); setPassForm({ actual: '', nueva: '', repetir: '' }); }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="font-display text-lg font-bold text-ink">Cambiar contraseña</h2>
+                <button onClick={() => { setShowPassModal(false); setPassError(''); setPassExito(''); setPassForm({ actual: '', nueva: '', repetir: '' }); }} className="text-ink/30 hover:text-rojo text-lg">✕</button>
+              </div>
+              <form onSubmit={cambiarPassword} className="space-y-3">
+                <div>
+                  <label className="label">Contraseña actual</label>
+                  <input type="password" className="input" value={passForm.actual} onChange={(e) => setPassForm({ ...passForm, actual: e.target.value })} required />
+                </div>
+                <div>
+                  <label className="label">Nueva contraseña</label>
+                  <input type="password" className="input" placeholder="Mínimo 6 caracteres" value={passForm.nueva} onChange={(e) => setPassForm({ ...passForm, nueva: e.target.value })} required minLength={6} />
+                </div>
+                <div>
+                  <label className="label">Repetir nueva contraseña</label>
+                  <input type="password" className="input" value={passForm.repetir} onChange={(e) => setPassForm({ ...passForm, repetir: e.target.value })} required />
+                </div>
+                {passError && <p className="text-rojo text-sm">{passError}</p>}
+                {passExito && <p className="text-verde text-sm">{passExito}</p>}
+                <button type="submit" disabled={passCargando} className="btn-gold w-full">
+                  {passCargando ? 'Guardando…' : 'Guardar contraseña'}
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
