@@ -1,60 +1,74 @@
-# Frontend — Misión Panamericana
+# Misión Panamericana — Centro de Fe y Esperanza
 
-Sitio web de la iglesia. React, Vite y Tailwind. Incluye página pública y panel de administración.
+Sistema web integral para la gestión de la iglesia.
 
-## Páginas públicas
+**Sitio web:** [misionpanamericana.vercel.app](https://misionpanamericana.vercel.app)
 
-- **Inicio** (`/`): bienvenida, próximo servicio, ministerios, galería, redes sociales.
-- **Horarios** (`/horarios`): servicios agrupados por día.
-- **Eventos** (`/eventos`): listado con filtro por categoría, galería de fotos.
-- **Detalle evento** (`/eventos/:id`): información completa + galería.
-- **Citas** (`/citas`): formulario para agendar cita con un pastor.
-- **Redes** (`/redes`): reels de Facebook e Instagram.
+---
 
-## Panel administrativo
+## Sitio público
 
-Ruta `/admin/login`. Protegido con JWT.
+La página principal de la iglesia, disponible para toda la congregación y visitantes:
 
-- Dashboard con estadísticas
-- Personas: crear, editar, eliminar feligreses
-- Citas: confirmar, cancelar, completar
-- Servicios: gestionar horarios
-- Eventos: crear, editar, galería de fotos
-- Usuarios: crear, activar/desactivar, eliminar (solo ADMIN)
+- **Inicio:** información de la iglesia, próximo servicio, ministerios y galería de fotos.
+- **Horarios:** servicios de la semana agrupados por día.
+- **Eventos:** próximos eventos de la iglesia con detalles, galería y categorías.
+- **Citas:** los feligreses pueden agendar una cita directamente con un pastor.
+- **Redes sociales:** enlaces a Facebook e Instagram de la iglesia.
+- **Chatbot inteligente:** asistente virtual que responde preguntas sobre servicios, eventos y horarios.
+- **Check-in digital:** los asistentes se registran al llegar al servicio (por nombre o código QR).
+- **PWA:** se puede instalar como aplicación en celulares y computadoras.
 
-Los roles PASTOR y LIDER solo acceden a Citas y Personas.
+## Panel de administración
 
-## Correr local
+Accesible para el equipo pastoral y administrativo de la iglesia:
 
-```bash
-cp .env.example .env
-# Ponér la URL del backend en VITE_API_URL
+### Funcionalidades generales
+- **Dashboard:** resumen visual con gráficos de asistencia, miembros y estadísticas del mes.
+- **Miembros:** registro completo de feligreses con búsqueda, filtros y paginación.
+- **Citas:** gestión de citas pastorales con confirmación, cancelación y recordatorios automáticos.
+- **Citas online:** los feligreses agendan citas desde la página pública.
+- **Nuevos visitantes:** registro de personas que asisten por primera vez.
+- **Presentación de bebés:** registro de bebés para presentaciones en la iglesia.
+- **Gestión de eventos:** crear, editar y eliminar eventos con galería de fotos.
+- **Gestión de servicios:** administrar horarios de cultos de la semana.
+- **Usuarios:** crear, activar o desactivar usuarios del sistema.
+- **Historial de auditoría:** registro de todas las acciones realizadas en el sistema.
+- **Notificaciones:** sistema de notificaciones in-app y por email.
 
-npm install
-npm run dev
+### Contabilidad (solo ADMIN y PASTOR)
+- **Registro de diezmos y ofrendas:** asociados al miembro o de forma anónima.
+- **Registro de gastos:** descripción detallada de cada gasto.
+- **Registro de donaciones:** donaciones externas o anónimas.
+- **Resumen mensual:** visualización de entradas, gastos y balance por mes.
+- **Selector de mes y año:** navegar entre diferentes períodos.
+- **Exportar Excel:** descargar reportes por tipo (diezmos, ofrendas, gastos, donaciones) o todos juntos.
+- **Editar registros:** corregir información de movimientos ya registrados.
+- **Método de pago:** efectivo, transferencia, Nequi, Daviplata u otro.
+
+### Alertas (solo ADMIN y PASTOR)
+- **Inasistencia:** detecta miembros que faltaron a más de 3 domingos consecutivos.
+- **Cumpleaños:** lista de cumpleaños del mes con opción de notificar.
+
+## Seguridad
+
+- Inicio de sesión con código OTP enviado por email (verificación obligatoria).
+- Cada usuario puede cambiar su contraseña desde el panel.
+- Roles diferenciados: ADMIN (acceso total), PASTOR (contabilidad, alertas, asistencia), LIDER (citas, personas, bebés).
+- Registro de auditoría: cada acción queda registrada con usuario, fecha y detalle.
+- Base de datos cifrada en reposo (Supabase/PostgreSQL).
+- Conexiones seguras con HTTPS.
+
+## Acceso al panel
+
+La ruta de acceso al panel de administración es:
+
+```
+misionpanamericana.vercel.app/admin/login
 ```
 
-El backend tiene que estar corriendo. En el `.env` del backend, FRONTEND_URL debe incluir `http://localhost:5173`.
+Los usuarios y contraseñas son gestionados exclusivamente por el administrador del sistema.
 
-## Desplegar en Vercel
+## Soporte
 
-1. Subir a GitHub.
-2. En https://vercel.com → Add New → Project → importar el repo.
-3. Si está en subcarpeta, configurar Root Directory.
-4. Framework: Vite (Vercel lo detecta).
-5. Environment Variable: `VITE_API_URL` con la URL del backend en Render.
-6. Deploy.
-
-Después de desplegar, actualizar FRONTEND_URL en el backend con la URL de Vercel para que CORS funcione.
-
-## Primer login
-
-- Ruta: `/admin/login`
-- Email: `admin@misionpanamericana.com`
-- Password: `admin`
-
-Desde ahí se pueden crear más usuarios desde el panel.
-
-## Dominio propio
-
-En Vercel: Project → Settings → Domains → agregar el dominio y configurar el registro CNAME que te dan. El SSL se genera solo.
+Para solicitudes de soporte, cambios o mejoras, contactar al equipo de desarrollo.
