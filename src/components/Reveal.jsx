@@ -1,8 +1,15 @@
 // Reveal.jsx — envuelve cualquier bloque para que aparezca con una
 // animación suave de fade + slide cuando entra en pantalla al hacer scroll.
 import { motion } from 'framer-motion';
+import { useSkipDecorations } from '../utils/performance';
 
 export function Reveal({ children, delay = 0, y = 24, className = '' }) {
+  const skip = useSkipDecorations();
+
+  if (skip) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div
       className={className}
@@ -18,6 +25,12 @@ export function Reveal({ children, delay = 0, y = 24, className = '' }) {
 
 // Contenedor con stagger para listas/grids: cada hijo directo debe usar <StaggerItem>
 export function StaggerGroup({ children, className = '', staggerDelay = 0.08 }) {
+  const skip = useSkipDecorations();
+
+  if (skip) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div
       className={className}
@@ -35,6 +48,12 @@ export function StaggerGroup({ children, className = '', staggerDelay = 0.08 }) 
 }
 
 export function StaggerItem({ children, className = '' }) {
+  const skip = useSkipDecorations();
+
+  if (skip) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div
       className={className}
@@ -50,6 +69,12 @@ export function StaggerItem({ children, className = '' }) {
 
 // Botón/link con micro-interacción de escala al pasar el mouse y al hacer click
 export function Pressable({ as: Component = motion.div, className = '', children, ...props }) {
+  const skip = useSkipDecorations();
+
+  if (skip) {
+    return <Component className={className} {...props}>{children}</Component>;
+  }
+
   return (
     <Component
       className={className}

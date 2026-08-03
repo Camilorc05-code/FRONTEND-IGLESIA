@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-function isLowEndDevice() {
+export function isLowEndDevice() {
   if (typeof navigator === 'undefined') return false;
+  if (window.__LOW_END__) return true;
   const lowCPU = (navigator.hardwareConcurrency || 4) <= 2;
   const saveData = navigator.connection?.saveData === true;
   return lowCPU || saveData;
 }
 
-function prefersReducedMotion() {
+export function prefersReducedMotion() {
   if (typeof window === 'undefined') return false;
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 }
@@ -52,6 +53,13 @@ export function useLazyLoad(ref, options = {}) {
   return { isVisible, hasBeenVisible };
 }
 
+// Hook para saber si se deben omitir las animaciones decorativas pesadas
+// (partículas, parallax con mouse, tilt, etc.) en este dispositivo.
+export function useSkipDecorations() {
+  const reduced = useReducedMotion();
+  return reduced;
+}
+
 export function optimizeForLowEnd() {
   if (typeof window === 'undefined') return;
   if (!isLowEndDevice()) return;
@@ -59,6 +67,14 @@ export function optimizeForLowEnd() {
   const style = document.createElement('style');
   style.setAttribute('data-perf-opt', 'low-end');
   style.textContent = `
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
     [style*="will-change: transform"],
     [style*="will-change:translate"] {
       will-change: auto !important;
@@ -66,12 +82,26 @@ export function optimizeForLowEnd() {
   `;
   document.head.appendChild(style);
 
-  if (window.__FRAMER_MOTION__) {
-    const defaults = window.__FRAMER_MOTION__.MotionConfig?.defaults;
-    if (defaults) {
-      defaults.transition = { duration: 0.2 };
-    }
-  }
-
   window.__REDUCED_MOTION_OVERRIDE__ = true;
+}
+
+// Lazy-load de imágenes: agrega loading="lazy" + decoding="async" a <img>.
+// Se ejecuta una vez y usa MutationObserver para cubrir imágenes dinámicas.
+export function enableLazyImages() {
+  if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
+  const procesar = (img) => {
+    if (img.getAttribute('loading')) return;
+    img.setAttribute('loading', 'lazy');
+    img.setAttribute('decoding', 'async');
+  };
+  document.querySelectorAll('img').forEach(procesar);
+  const obs = new MutationObserver((mutations) => {
+    mutations.forEach((m) => m.addedNodes.forEach((node) => {
+      if (node.nodeType === 1) {
+        if (node.tagName === 'IMG') procesar(node);
+        node.querySelectorAll?.('img').forEach(procesar);
+      }
+    }));
+  });
+  obs.observe(document.body, { childList: true, subtree: true });
 }

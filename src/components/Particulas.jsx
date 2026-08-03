@@ -1,9 +1,12 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { useSkipDecorations } from '../utils/performance';
 
 // Partículas suaves que flotan hacia arriba, en los colores de marca.
 // Puramente decorativo — no interactúa con el mouse, corre en loop infinito.
+// En dispositivos de poca potencia se omiten por completo.
 export function Particulas({ count = 16, className = '' }) {
+  const skip = useSkipDecorations();
   const particulas = useMemo(
     () =>
       Array.from({ length: count }).map((_, i) => ({
@@ -17,6 +20,8 @@ export function Particulas({ count = 16, className = '' }) {
       })),
     [count]
   );
+
+  if (skip) return null;
 
   return (
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`} aria-hidden="true">

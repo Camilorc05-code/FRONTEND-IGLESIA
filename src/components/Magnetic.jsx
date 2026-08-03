@@ -1,7 +1,9 @@
 import { useRef } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { useSkipDecorations } from '../utils/performance';
 
 export function Magnetic({ children, strength = 0.35, className = '' }) {
+  const skip = useSkipDecorations();
   const ref = useRef(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -21,6 +23,12 @@ export function Magnetic({ children, strength = 0.35, className = '' }) {
   function onMouseLeave() {
     x.set(0);
     y.set(0);
+  }
+
+  // En dispositivos de poca potencia o con movimiento reducido,
+  // se renderiza como un contenedor estático (sin efecto magnético).
+  if (skip) {
+    return <div className={`inline-block ${className}`}>{children}</div>;
   }
 
   return (

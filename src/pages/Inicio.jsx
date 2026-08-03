@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { api } from '../api/client';
+import { useSkipDecorations } from '../utils/performance';
 import { Horizonte } from '../components/Horizonte';
 import { GlobeGrid } from '../components/GlobeGrid';
 import logoMision from '../assets/logo-mision-transparente.png';
@@ -30,6 +31,7 @@ import logoMjpImg from '../assets/logo-mjp.png';
 const DIRECCION_IGLESIA = 'Calle 12 #10-19';
 
 export default function Inicio() {
+  const skipDeco = useSkipDecorations();
   const [servicios, setServicios] = useState([]);
   const [eventos, setEventos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -72,19 +74,19 @@ export default function Inicio() {
               <ParallaxLayer
                 mvX={mvX} mvY={mvY} depth={-14}
                 className="absolute -top-24 -left-20 w-96 h-96 rounded-full bg-azul/10 blur-3xl"
-                animate={{ scale: [1, 1.18, 1], opacity: [0.7, 1, 0.7] }}
+                animate={skipDeco ? undefined : { scale: [1, 1.18, 1], opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
               />
               <ParallaxLayer
                 mvX={mvX} mvY={mvY} depth={18}
                 className="absolute top-10 right-0 w-80 h-80 rounded-full bg-rojo/10 blur-3xl"
-                animate={{ scale: [1, 1.22, 1], opacity: [0.6, 1, 0.6] }}
+                animate={skipDeco ? undefined : { scale: [1, 1.22, 1], opacity: [0.6, 1, 0.6] }}
                 transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
               />
               <ParallaxLayer
                 mvX={mvX} mvY={mvY} depth={-10}
                 className="absolute bottom-0 left-1/3 w-72 h-72 rounded-full bg-indigo/10 blur-3xl"
-                animate={{ scale: [1, 1.15, 1], opacity: [0.7, 1, 0.7] }}
+                animate={skipDeco ? undefined : { scale: [1, 1.15, 1], opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
               />
               <Particulas count={16} />
@@ -202,7 +204,7 @@ export default function Inicio() {
                 transition={{ delay: 1.3, duration: 0.6 }}
               >
                 <motion.div
-                  animate={{ y: [0, 8, 0] }}
+                  animate={skipDeco ? undefined : { y: [0, 8, 0] }}
                   transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
                   className="w-6 h-10 rounded-full border-2 border-ink/20 flex items-start justify-center p-1.5"
                 >
@@ -410,7 +412,7 @@ export default function Inicio() {
                 <div className="relative shrink-0">
                   <motion.div
                     className="absolute inset-0 rounded-full bg-azul/15 blur-xl"
-                    animate={{ scale: [1, 1.25, 1], opacity: [0.5, 0.9, 0.5] }}
+                    animate={skipDeco ? undefined : { scale: [1, 1.25, 1], opacity: [0.5, 0.9, 0.5] }}
                     transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
                   />
                   <img src={logoMiaImg} alt="Logo M.I.A - Ministerios Infantiles y Adolescentes" className="relative w-20 h-20 object-contain" />
@@ -428,7 +430,7 @@ export default function Inicio() {
                 <div className="relative shrink-0">
                   <motion.div
                     className="absolute inset-0 rounded-full bg-gold/20 blur-xl"
-                    animate={{ scale: [1, 1.25, 1], opacity: [0.5, 0.9, 0.5] }}
+                    animate={skipDeco ? undefined : { scale: [1, 1.25, 1], opacity: [0.5, 0.9, 0.5] }}
                     transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
                   />
                   <img src={logoMjpImg} alt="Logo M.J.P - Ministerio Juvenil Panamericano" className="relative w-20 h-20 object-contain" />
@@ -446,7 +448,7 @@ export default function Inicio() {
                 <div className="relative shrink-0">
                   <motion.div
                     className="absolute inset-0 rounded-full bg-rojo/15 blur-xl"
-                    animate={{ scale: [1, 1.25, 1], opacity: [0.5, 0.9, 0.5] }}
+                    animate={skipDeco ? undefined : { scale: [1, 1.25, 1], opacity: [0.5, 0.9, 0.5] }}
                     transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
                   />
                   <div className="relative w-20 h-20 rounded-full bg-rojo/10 flex items-center justify-center">
@@ -470,7 +472,7 @@ export default function Inicio() {
                 <div className="relative shrink-0">
                   <motion.div
                     className="absolute inset-0 rounded-full bg-azul/15 blur-xl"
-                    animate={{ scale: [1, 1.25, 1], opacity: [0.5, 0.9, 0.5] }}
+                    animate={skipDeco ? undefined : { scale: [1, 1.25, 1], opacity: [0.5, 0.9, 0.5] }}
                     transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
                   />
                   <div className="relative w-20 h-20 rounded-full bg-azul/10 flex items-center justify-center">
@@ -510,7 +512,7 @@ export default function Inicio() {
                 <TiltCard max={7} className="relative flex justify-center">
                   <motion.div
                     className="absolute w-60 h-60 md:w-72 md:h-72 rounded-full bg-gold/25 blur-3xl"
-                    animate={{ scale: [1, 1.12, 1] }}
+                    animate={skipDeco ? undefined : { scale: [1, 1.12, 1] }}
                     transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
                   />
                   <div className="absolute w-52 h-52 md:w-64 md:h-64 rounded-full bg-azul/10 blur-2xl top-4" />

@@ -1,7 +1,9 @@
 import { useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { useSkipDecorations } from '../utils/performance';
 
 export function TiltCard({ children, className = '', max = 8 }) {
+  const skip = useSkipDecorations();
   const ref = useRef(null);
   const mvX = useMotionValue(0.5);
   const mvY = useMotionValue(0.5);
@@ -19,6 +21,12 @@ export function TiltCard({ children, className = '', max = 8 }) {
   function onMouseLeave() {
     mvX.set(0.5);
     mvY.set(0.5);
+  }
+
+  // En dispositivos de poca potencia el efecto tilt se desactiva
+  // y solo se renderiza el contenido estático.
+  if (skip) {
+    return <div className={`relative ${className}`}>{children}</div>;
   }
 
   return (

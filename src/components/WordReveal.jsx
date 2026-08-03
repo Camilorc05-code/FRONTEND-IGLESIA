@@ -1,9 +1,18 @@
 import { motion } from 'framer-motion';
+import { useSkipDecorations } from '../utils/performance';
 
 // Divide el texto en palabras y las revela una por una con stagger.
 // Las <br/> se pasan como children separados (ver uso en Inicio.jsx).
 export function WordReveal({ text, delay = 0, className = '' }) {
+  const skip = useSkipDecorations();
   const palabras = text.split(' ');
+
+  // En dispositivos de poca potencia el texto aparece directamente,
+  // sin la animación palabra por palabra.
+  if (skip) {
+    return <span className={`inline ${className}`}>{text}</span>;
+  }
+
   return (
     <span className={`inline ${className}`}>
       {palabras.map((palabra, i) => (

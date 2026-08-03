@@ -2,9 +2,10 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import './index.css';
-import { optimizeForLowEnd } from './utils/performance';
+import { optimizeForLowEnd, enableLazyImages } from './utils/performance';
 
 optimizeForLowEnd();
+enableLazyImages();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { motion, useInView, useMotionValue, useSpring } from 'framer-motion';
+import { useSkipDecorations } from '../utils/performance';
 
 export function CountUp({ value, className = '', suffix = '' }) {
   const ref = useRef(null);
+  const skip = useSkipDecorations();
   const isInView = useInView(ref, { once: true, margin: '-40px' });
   const motionValue = useMotionValue(0);
   const spring = useSpring(motionValue, { stiffness: 90, damping: 20 });
@@ -16,6 +18,11 @@ export function CountUp({ value, className = '', suffix = '' }) {
       if (ref.current) ref.current.textContent = Math.round(v) + suffix;
     });
   }, [spring, suffix]);
+
+  // En dispositivos de poca potencia se muestra el valor final directamente.
+  if (skip) {
+    return <span className={className}>{value}{suffix}</span>;
+  }
 
   return (
     <motion.span ref={ref} className={className}>
