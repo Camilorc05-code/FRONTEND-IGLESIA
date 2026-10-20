@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/((?!google-site-verification).*)", "destination": "/index.html" }
+    { "source": "/((?!google-site-verification|BingSiteAuth\\.xml|sitemap\\.xml|robots\\.txt).*)", "destination": "/index.html" }
   ]
 }
